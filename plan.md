@@ -280,6 +280,8 @@ Traer todo a memoria y sumar con `.reduce()` es el anti-patrón clásico. Para e
 | C4 | Dashboard financiero (§6.6) | `app/(admin)/dashboard.tsx` |
 | C5 | Imágenes de productos: picker + almacenamiento permanente (§6.5) | `components/SelectorImagen.tsx` |
 | C6 | Precio de compra y cálculo de márgenes | `db/productos.ts` (campos), `lib/moneda.ts` |
+| C7 | Ventas del admin: listado de encabezados con detalle expandible | `app/(admin)/ventas.tsx` |
+| C8 | Mis compras del cliente + inicio del cliente | `app/(cliente)/mis-compras.tsx`, `app/(cliente)/inicio.tsx` |
 
 ### Nataly (@Nataly97)
 
@@ -289,9 +291,9 @@ Traer todo a memoria y sumar con `.reduce()` es el anti-patrón clásico. Para e
 | N2 | Repositorio de clientes + pantalla de clientes (admin, solo lectura) | `db/clientes.ts`, `app/(admin)/clientes.tsx` |
 | N3 | Repositorio de productos + formulario CRUD del admin (crear, editar, subir stock) | `db/productos.ts`, `app/(admin)/productos.tsx` |
 | N4 | Catálogo del cliente (listado, búsqueda, "agregar al carrito") | `app/(cliente)/catalogo.tsx` |
-| N5 | Ventas del admin: listado de encabezados con detalle expandible | `app/(admin)/ventas.tsx` |
-| N6 | "Mis compras" del cliente + inicio del cliente | `app/(cliente)/mis-compras.tsx`, `app/(cliente)/inicio.tsx` |
-| N7 | Componentes UI compartidos y datos de prueba (seed) | `components/`, `db/seed.ts` |
+| N5 | Componentes UI compartidos y datos de prueba (seed) | `components/`, `db/seed.ts` |
+
+**Criterio del corte:** Camilo se queda con todo el dominio de **venta y dinero** (carrito, checkout, factura, ventas del admin, historial del cliente, dashboard) más autenticación. Nataly se queda con los **maestros** (clientes, productos, catálogo) y la base de datos. Así casi nunca tocan el mismo archivo.
 
 **Trabajo conjunto (Fase 0, antes de que cada uno arranque por su lado):** definir `db/tipos.ts` y las **firmas** de todas las funciones de `db/`. Ver §8.
 
@@ -314,6 +316,8 @@ Con eso, Camilo programa el carrito contra `crearVenta()` aunque Nataly todavía
 
 **3. Un archivo, un dueño.** La tabla de §7 dice quién manda en cada archivo. Si necesitas tocar un archivo ajeno, se avisa antes.
 
+**El único choque previsto es `productos`.** Nataly construye el repositorio y el formulario (N3); Camilo aporta `precio_compra` e `imagen_uri` (C5, C6). Para que no se pisen: las dos columnas entran en el esquema desde la Fase 0, así N3 ya se construye con esos campos, y Camilo solo entrega el componente `SelectorImagen` para que ella lo inserte. Nadie reescribe el trabajo del otro.
+
 ---
 
 ## 9. Fases
@@ -322,10 +326,10 @@ Con eso, Camilo programa el carrito contra `crearVenta()` aunque Nataly todavía
 |---|---|---|
 | 0 | Instalar dependencias, migrar a `expo-router`, definir `db/tipos.ts` y firmas | Los dos, sentados juntos |
 | 1 | Esquema + migraciones + seed · Auth con scrypt + guard por rol | N1 · C1 |
-| 2 | CRUD productos + catálogo · Imágenes + precio de compra | N3, N4 · C5, C6 |
-| 3 | Carrito + checkout transaccional · Clientes (admin) | C2 · N2 |
-| 4 | Ventas (admin) + mis compras · Facturas PDF | N5, N6 · C3 |
-| 5 | Dashboard financiero · UI compartida y pulido | C4 · N7 |
+| 2 | CRUD productos (admin) · Imágenes + precio de compra | N3 · C5, C6 |
+| 3 | Catálogo del cliente · Carrito + checkout transaccional | N4 · C2 |
+| 4 | Clientes (admin) · Ventas del admin + mis compras | N2 · C7, C8 |
+| 5 | UI compartida y pulido · Facturas PDF + dashboard financiero | N5 · C3, C4 |
 | 6 | Pruebas de extremo a extremo, datos de demo, ensayo de sustentación | Los dos |
 
 > Fechas: pendientes de la entrega real. Ajustar al calendario del curso.
