@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Runbook local de la skill napkin, no compartir
+.claude/napkin.md
