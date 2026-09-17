@@ -9,28 +9,43 @@ autenticación por roles y módulo de ventas con encabezado/detalle.
 
 ## 1. Requisitos del profesor
 
-Esto es lo que se califica. No se negocia, no se recorta.
+Fuente: `Parcial practico.docx`. Esto es lo que se califica.
 
-### Entidades
+### Historias de usuario
 
-| Entidad | Campos exigidos |
+| HU | Qué exige |
 |---|---|
-| Login | correo, contraseña, rol |
-| Cliente | id cliente, nombre completo, fecha nacimiento, correo |
-| Producto | id producto, nombre, descripción, stock, precio unitario |
-| Encabezado | id encabezado, id cliente, fecha venta, total (suma de los detalles) |
-| Detalle | id detalle, id encabezado, id producto, cantidad, subtotal |
+| HU-01 | Registro público con correo y contraseña. Queda en estado **Pendiente/Inactivo** y avisa que un administrador debe aprobarla |
+| HU-02 | El administrador ve las solicitudes pendientes, **asigna rol** (Admin o Cliente) y activa la cuenta |
+| HU-03 | Login con control por estado y rol. Cuenta inactiva: acceso denegado con aviso explicativo |
+| HU-04 | El cliente consulta y edita sus datos personales. El administrador ve el listado de clientes |
+| HU-05 | Catálogo de productos. Solo se selecciona con stock mayor a cero y nunca por encima del stock |
+| HU-06 | Compra: inserta encabezado, inserta detalles y descuenta stock. **Transacción atómica** |
+| HU-07 | CRUD de productos, exclusivo del administrador, con validación de valor unitario positivo y stock entero mayor o igual a cero |
 
-### Reglas de rol
+### Reglas de HU-03 que condicionan todo el flujo
 
-- **Cliente:** compra y ve sus propias compras. No maneja formularios de gestión.
-- **Administrador:** ve las compras de los clientes, gestiona productos (crear, editar, subir stock). **No** crea ventas ni clientes por su cuenta.
+- Si el rol es Admin: todos los módulos (Clientes, Productos, Compras, Detalles).
+- Si el rol es Cliente: solo su información personal y la opción de compra.
+- **Primer ingreso como cliente: obligado a llenar sus datos personales.**
+- **No se permite comprar sin datos del cliente registrados.**
+- **No se permite comprar sin productos registrados.**
 
-Consecuencia de diseño: si el admin no crea clientes, los clientes entran por **auto-registro**. El registro público crea `usuario(rol='cliente')` + `cliente` en una sola transacción.
+### Requerimientos generales
 
-### Componentes visuales exigidos
+Login · **Menú en todas las pantallas** · Pantalla de compra · Diseño de la pantalla de compra · Validaciones en cada pantalla · Diseño general · Orden de la estructura del proyecto.
 
-`inicio` · `cliente` · `productos` · `ventas` (encabezado + detalle)
+### Rúbrica
+
+| Peso | Criterio | Qué mira |
+|---|---|---|
+| 15% | Login funcional | Validación de credenciales, control de acceso, mensajes al usuario, seguridad básica |
+| 10% | Navegación y Home | Redirección tras login, estructura del home, **persistencia de sesión** |
+| 30% | Entidades (mínimo 4) | Modelo de datos, visualización, **operaciones CRUD** |
+| 15% | Diseño visual | Login, home, consistencia, **menú en todas las pantallas** |
+| 30% | Funcionamiento general | Estructura del proyecto, ejecución, integración de módulos, base de datos conectada |
+
+Lectura de la rúbrica: **60% se va en funcionamiento y entidades**. Los extras de §2 no suman nada si el CRUD falla. Primero se cierra lo exigido.
 
 ---
 
@@ -80,60 +95,90 @@ En `app.json`: agregar `"scheme": "ventasapp"` y `"experiments": { "typedRoutes"
 
 ## 4. Modelo de datos
 
+> **Pendiente de confirmar contra las tablas del `.docx`.** El enunciado trae las tablas como imágenes y aquí están reconstruidas desde el texto de las historias. Antes de escribir `db/esquema.ts` hay que cotejar nombres y campos exactos. Diferencia ya detectada: HU-04 habla de **Nombre y Apellido**, mientras que la versión anterior de este plan usaba nombre completo y fecha de nacimiento.
+
 ```sql
 PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;   -- ver §6.1
 
-CREATE TABLE usuarios (
+-- HU-01, HU-02, HU-03. El rol es NULL hasta que el administrador lo asigna.
+CREATE TABLE login (
   id                INTEGER PRIMARY KEY AUTOINCREMENT,
   correo            TEXT NOT NULL UNIQUE COLLATE NOCASE,
   password_hash     TEXT NOT NULL,
   salt              TEXT NOT NULL,
-  rol               TEXT NOT NULL CHECK (rol IN ('cliente', 'administrador')),
+  rol               TEXT CHECK (rol IN ('admin', 'cliente')),
+  estado            TEXT NOT NULL DEFAULT 'pendiente'
+                    CHECK (estado IN ('pendiente', 'activo', 'inactivo')),
   intentos_fallidos INTEGER NOT NULL DEFAULT 0,
   bloqueado_hasta   TEXT,
   creado_en         TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE clientes (
-  id               INTEGER PRIMARY KEY AUTOINCREMENT,
-  id_usuario       INTEGER NOT NULL UNIQUE REFERENCES usuarios(id) ON DELETE CASCADE,
-  nombre_completo  TEXT NOT NULL,
-  fecha_nacimiento TEXT NOT NULL,              -- ISO: yyyy-mm-dd
-  correo           TEXT NOT NULL UNIQUE COLLATE NOCASE
+-- HU-03, HU-04. Se crea en el primer ingreso del cliente, no en el registro.
+CREATE TABLE cliente (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_login   INTEGER NOT NULL UNIQUE REFERENCES login(id) ON DELETE CASCADE,
+  nombre     TEXT NOT NULL,
+  apellido   TEXT NOT NULL,
+  correo     TEXT NOT NULL UNIQUE COLLATE NOCASE
 );
 
-CREATE TABLE productos (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre          TEXT NOT NULL,
-  descripcion     TEXT,
-  stock           INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
-  precio_unitario REAL NOT NULL CHECK (precio_unitario >= 0),
-  precio_compra   REAL NOT NULL DEFAULT 0 CHECK (precio_compra >= 0),   -- extra
-  imagen_uri      TEXT,                                                 -- extra
-  activo          INTEGER NOT NULL DEFAULT 1
+-- HU-05, HU-07. precio_compra e imagen_uri son extras nuestros (§2).
+CREATE TABLE producto (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre         TEXT NOT NULL,
+  descripcion    TEXT,
+  valor_unitario REAL NOT NULL CHECK (valor_unitario > 0),
+  stock          INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
+  precio_compra  REAL NOT NULL DEFAULT 0 CHECK (precio_compra >= 0),
+  imagen_uri     TEXT,
+  activo         INTEGER NOT NULL DEFAULT 1
 );
 
-CREATE TABLE ventas_encabezado (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  id_cliente  INTEGER NOT NULL REFERENCES clientes(id),
-  fecha_venta TEXT NOT NULL DEFAULT (datetime('now')),
-  total       REAL NOT NULL DEFAULT 0
+-- HU-06
+CREATE TABLE encabezado (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_cliente INTEGER NOT NULL REFERENCES cliente(id),
+  fecha      TEXT NOT NULL DEFAULT (datetime('now')),
+  total      REAL NOT NULL DEFAULT 0
 );
 
-CREATE TABLE ventas_detalle (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  id_encabezado   INTEGER NOT NULL REFERENCES ventas_encabezado(id) ON DELETE CASCADE,
-  id_producto     INTEGER NOT NULL REFERENCES productos(id),
-  cantidad        INTEGER NOT NULL CHECK (cantidad > 0),
-  precio_unitario REAL NOT NULL,   -- congelado, ver §6.2
-  costo_unitario  REAL NOT NULL,   -- congelado, para calcular ganancia
-  subtotal        REAL NOT NULL
+CREATE TABLE detalle (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_encabezado  INTEGER NOT NULL REFERENCES encabezado(id) ON DELETE CASCADE,
+  id_producto    INTEGER NOT NULL REFERENCES producto(id),
+  cantidad       INTEGER NOT NULL CHECK (cantidad > 0),
+  valor_unitario REAL NOT NULL,   -- congelado, ver §6.2
+  costo_unitario REAL NOT NULL,   -- congelado, para calcular ganancia
+  subtotal       REAL NOT NULL
 );
 
-CREATE INDEX idx_detalle_encabezado ON ventas_detalle(id_encabezado);
-CREATE INDEX idx_encabezado_cliente ON ventas_encabezado(id_cliente);
+CREATE INDEX idx_detalle_encabezado ON detalle(id_encabezado);
+CREATE INDEX idx_encabezado_cliente ON encabezado(id_cliente);
 ```
+
+Son **5 entidades**, por encima del mínimo de 4 que pide la rúbrica.
+
+### El ciclo de vida de una cuenta
+
+Es lo que más cambió frente a la versión anterior del plan, y condiciona el login entero:
+
+```
+registro (HU-01)      login.estado = 'pendiente', login.rol = NULL
+      |
+      v
+admin aprueba (HU-02) login.estado = 'activo', login.rol = 'cliente' | 'admin'
+      |
+      v
+primer ingreso        si rol = 'cliente' y no existe fila en cliente
+   (HU-03)            -> pantalla obligatoria de datos personales
+      |
+      v
+puede comprar (HU-05) solo si existe su fila en cliente Y hay productos con stock
+```
+
+Tres compuertas antes de la primera compra. Cada una necesita su propio mensaje explicativo, no un error genérico: la rúbrica evalúa "mensajes al usuario" dentro del 15% de login.
 
 ---
 
@@ -141,39 +186,46 @@ CREATE INDEX idx_encabezado_cliente ON ventas_encabezado(id_cliente);
 
 ```
 app/
-├── _layout.tsx              SQLiteProvider + sesión + guard por rol
+├── _layout.tsx                 SQLiteProvider + sesión + guard global
+├── index.tsx                   redirige según estado y rol
 ├── login.tsx
 ├── registro.tsx
+├── completar-perfil.tsx        HU-03: obligatoria en el primer ingreso del cliente
 ├── (cliente)/
-│   ├── _layout.tsx          tabs del cliente
+│   ├── _layout.tsx             menú del cliente
 │   ├── inicio.tsx
-│   ├── catalogo.tsx
-│   ├── carrito.tsx
+│   ├── perfil.tsx              HU-04: consulta y edita sus datos
+│   ├── comprar.tsx             HU-05 + HU-06: catálogo, cantidades y confirmación
 │   └── mis-compras.tsx
 └── (admin)/
-    ├── _layout.tsx          tabs del admin
-    ├── dashboard.tsx
-    ├── productos.tsx
-    ├── clientes.tsx
-    └── ventas.tsx
+    ├── _layout.tsx             menú del admin
+    ├── inicio.tsx              home + dashboard
+    ├── solicitudes.tsx         HU-02: aprobar cuentas y asignar rol
+    ├── productos.tsx           HU-07: CRUD
+    ├── clientes.tsx            HU-04: listado
+    └── compras.tsx             encabezados con sus detalles
 
 db/
-├── esquema.ts               DDL + migraciones (PRAGMA user_version)
-├── tipos.ts                 tipos compartidos — CONTRATO, ver §8
-├── usuarios.ts
+├── esquema.ts                  DDL + migraciones (PRAGMA user_version)
+├── tipos.ts                    tipos compartidos — CONTRATO, ver §8
+├── login.ts                    autenticación, aprobación, roles
 ├── clientes.ts
 ├── productos.ts
-└── ventas.ts
+├── compras.ts
+└── reportes.ts
 
 lib/
-├── auth.ts                  hash, verificación, sesión
-├── moneda.ts                formato COP
-└── factura.ts               HTML → PDF
+├── auth.ts                     hash, verificación, sesión
+├── imagenes.ts                 guardado permanente de la imagen del producto
+├── moneda.ts                   formato COP
+└── factura.ts                  HTML → PDF
 
-components/                  UI compartida
+components/                     UI compartida, incluido el menú
 ```
 
-Las pantallas **no escriben SQL**. Llaman funciones de `db/`. Si mañana esto se conecta a una API, se cambia `db/` y ninguna pantalla se entera.
+El menú vive en los `_layout.tsx` de cada grupo: así aparece en **todas** las pantallas del rol sin repetir código, que es exactamente lo que pide la rúbrica.
+
+Las pantallas **no escriben SQL**. Llaman funciones de `db/`. La rúbrica evalúa "orden de la estructura del proyecto" dentro del 30% de funcionamiento general.
 
 ---
 
@@ -290,26 +342,28 @@ Excepción acordada: la **lógica** de autenticación, checkout y facturación l
 
 ### Camilo (@lmilo) — 8 entregables
 
-| # | Entregable | Archivos |
-|---|---|---|
-| C1 | Autenticación completa: scrypt + salt, bloqueo por intentos, sesión en SecureStore, guard por rol, pantallas de login y registro | `lib/auth.ts`, `db/usuarios.ts`, `lib/sesion.tsx`, `lib/guard.tsx`, `app/login.tsx`, `app/registro.tsx` |
-| C2 | Catálogo del cliente: grilla con imágenes, búsqueda, agregar al carrito | `app/(cliente)/catalogo.tsx` |
-| C3 | Formulario de productos del admin y selector de imágenes | `app/(admin)/productos.tsx`, `components/SelectorImagen.tsx` |
-| C4 | Carrito y checkout: `crearVenta` transaccional (§6.3) más toda la interfaz del flujo | `db/ventas.ts` (`crearVenta`), `app/(cliente)/carrito.tsx` |
-| C5 | Pantallas de consulta: ventas del admin, mis compras, clientes del admin | `app/(admin)/ventas.tsx`, `app/(cliente)/mis-compras.tsx`, `app/(admin)/clientes.tsx` |
-| C6 | Facturación: plantilla HTML, generación de PDF y compartir | `lib/factura.ts` |
-| C7 | Dashboard financiero: tarjetas, bajo stock, formato de moneda | `app/(admin)/dashboard.tsx`, `lib/moneda.ts` |
-| C8 | Sistema visual: componentes compartidos, tema, estados de carga, vacío y error | `components/`, `theme.ts`, `app/(cliente)/inicio.tsx` |
+| # | Entregable | HU / Rúbrica | Archivos |
+|---|---|---|---|
+| C1 | Autenticación: registro en estado pendiente, login con control de estado y rol, scrypt + salt, bloqueo por intentos, sesión en SecureStore, guard | HU-01, HU-03 · 15% + 10% | `lib/auth.ts`, `db/login.ts`, `lib/sesion.tsx`, `lib/guard.tsx`, `app/login.tsx`, `app/registro.tsx` |
+| C2 | Aprobación de cuentas: listado de solicitudes pendientes, asignar rol y activar | HU-02 | `app/(admin)/solicitudes.tsx` |
+| C3 | Perfil del cliente: pantalla obligatoria de primer ingreso y edición posterior | HU-03, HU-04 | `app/completar-perfil.tsx`, `app/(cliente)/perfil.tsx` |
+| C4 | Pantalla de compra: catálogo con stock, selección de cantidades, validación contra stock y confirmación | HU-05 · 15% diseño | `app/(cliente)/comprar.tsx` |
+| C5 | Lógica de compra: `crearCompra` transaccional, encabezado + detalles + descuento de stock | HU-06 · 30% | `db/compras.ts` (`crearCompra`) |
+| C6 | Pantallas de consulta: compras del admin, mis compras, listado de clientes | HU-04 · 30% | `app/(admin)/compras.tsx`, `app/(cliente)/mis-compras.tsx`, `app/(admin)/clientes.tsx` |
+| C7 | Formulario de productos del admin y selector de imágenes | HU-07 · 30% | `app/(admin)/productos.tsx`, `components/SelectorImagen.tsx` |
+| C8 | Sistema visual: **menú en todas las pantallas**, tema, estados de carga, vacío y error, home de cada rol | 15% + 10% | `components/`, `theme.ts`, ambos `_layout.tsx`, pantallas de inicio |
+
+Extras de §2 (facturas, dashboard financiero) van **después** de que C1–C8 estén cerrados. No antes.
 
 ### Nataly (@Nataly97) — 5 entregables
 
-| # | Entregable | Archivos |
-|---|---|---|
-| N1 | Plataforma de datos: esquema completo, migraciones con `PRAGMA user_version`, PRAGMAs de arranque y datos de prueba | `db/esquema.ts`, `db/seed.ts` |
-| N2 | Repositorio de clientes | `db/clientes.ts` |
-| N3 | Repositorio de productos: CRUD, validaciones de stock y precio, guardado de la imagen en disco (§6.5) | `db/productos.ts`, `lib/imagenes.ts` |
-| N4 | Consultas de ventas: historial por cliente, listado del admin, venta con sus detalles | `db/ventas.ts` (lectura) |
-| N5 | Consultas del dashboard: agregaciones de ingresos, ganancia, bajo stock y clientes (§6.6) | `db/reportes.ts` |
+| # | Entregable | HU / Rúbrica | Archivos |
+|---|---|---|---|
+| N1 | Plataforma de datos: las 5 tablas, migraciones con `PRAGMA user_version`, PRAGMAs de arranque, seed con un admin inicial | 30% funcionamiento | `db/esquema.ts`, `db/seed.ts` |
+| N2 | Repositorio de login: crear solicitud, listar pendientes, aprobar con rol, cambiar estado | HU-01, HU-02 | `db/login.ts` (todo menos la verificación de contraseña) |
+| N3 | Repositorio de clientes: crear en primer ingreso, leer por usuario, actualizar, listar | HU-04 · 30% CRUD | `db/clientes.ts` |
+| N4 | Repositorio de productos: CRUD completo, validación de valor unitario positivo y stock entero, guardado de imagen en disco | HU-07 · 30% CRUD | `db/productos.ts`, `lib/imagenes.ts` |
+| N5 | Consultas de compras y reportes: historial por cliente, listado del admin, compra con sus detalles, agregaciones del dashboard | HU-06 · 30% | `db/compras.ts` (lectura), `db/reportes.ts` |
 
 **Riesgo asumido, que quede escrito:** Nataly no toca ninguna pantalla en todo el proyecto. Si el profesor pregunta en sustentación por la interfaz, ella debe poder explicarla igual. Camilo queda con diez pantallas: es la carga más alta del equipo y se decidió a conciencia.
 
@@ -332,7 +386,7 @@ Camilo programa la pantalla contra esa firma aunque el cuerpo todavía no exista
 
 **2. Un archivo, un dueño.** La tabla de §7 dice quién manda en cada archivo. `db/` es de Nataly salvo `db/usuarios.ts` y la función `crearVenta`; `app/` y `components/` son de Camilo. Si necesitas tocar un archivo ajeno, se avisa antes.
 
-**3. `db/ventas.ts` es el único archivo compartido.** Camilo escribe `crearVenta` (la transacción); Nataly escribe las consultas de lectura. Para no chocar: Camilo lo crea en la Fase 0 con su función y las firmas de lectura vacías, y desde ahí cada uno toca solo sus funciones. No se reordena el archivo ni se reformatea completo.
+**3. Dos archivos compartidos, y solo dos.** `db/compras.ts`: Camilo escribe `crearCompra` (la transacción), Nataly las consultas de lectura. `db/login.ts`: Camilo la verificación de contraseña, Nataly el resto. Los dos se crean en la Fase 0 con todas las firmas, y desde ahí cada uno toca solo sus funciones. No se reordena ni se reformatea el archivo completo.
 
 **4. Una rama por entregable.** `feat/C4-checkout`, `feat/N3-productos`. Nadie commitea directo a `main`. PR y revisión del otro antes de mezclar — así los dos entienden todo el código, que es lo que el profesor va a preguntar en la sustentación.
 
@@ -342,13 +396,15 @@ Camilo programa la pantalla contra esa firma aunque el cuerpo todavía no exista
 
 | Fase | Contenido | Quién |
 |---|---|---|
-| 0 | Instalar dependencias, migrar a `expo-router`, definir `db/tipos.ts` y firmas | Los dos, sentados juntos |
-| 1 | Esquema, migraciones y seed · Autenticación completa | N1 · C1 |
-| 2 | Repositorio de productos e imágenes · Formulario de productos y catálogo | N3 · C2, C3 |
-| 3 | Repositorio de clientes · Carrito y checkout transaccional | N2 · C4 |
-| 4 | Consultas de ventas · Pantallas de consulta y facturación | N4 · C5, C6 |
-| 5 | Consultas del dashboard · Dashboard y sistema visual | N5 · C7, C8 |
-| 6 | Pruebas de extremo a extremo, datos de demo, ensayo de sustentación | Los dos |
+| 0 | Cotejar las tablas del `.docx`, instalar dependencias, migrar a `expo-router`, escribir `db/tipos.ts` y todas las firmas | Los dos, sentados juntos |
+| 1 | Las 5 tablas, migraciones y seed del admin · Autenticación con estados y roles | N1 · C1 |
+| 2 | Repositorio de login · Aprobación de cuentas y perfil del cliente | N2 · C2, C3 |
+| 3 | Repositorio de productos · Formulario de productos del admin | N4 · C7 |
+| 4 | Repositorio de clientes · Pantalla de compra y lógica transaccional | N3 · C4, C5 |
+| 5 | Consultas de compras y reportes · Pantallas de consulta y sistema visual | N5 · C6, C8 |
+| 6 | Extras de §2, pruebas de extremo a extremo, ensayo de sustentación | Los dos |
+
+Orden pensado contra la rúbrica: al terminar la Fase 4 el sistema **ya cumple** todas las historias de usuario. Las fases 5 y 6 suben nota, no la salvan.
 
 > Fechas: pendientes de la entrega real. Ajustar al calendario del curso.
 
@@ -382,11 +438,35 @@ Recomendación: los cuatro primeros sí o sí, los moderados según el tiempo, y
 
 ## 11. Definición de terminado
 
-- [ ] Las 5 entidades del profesor existen con todos sus campos.
-- [ ] Cliente compra y ve solo sus compras. No accede a pantallas de admin.
-- [ ] Admin gestiona productos y ve todas las ventas. No crea ventas ni clientes.
-- [ ] El total del encabezado siempre es igual a la suma de sus detalles.
-- [ ] El stock nunca queda negativo ni se descuenta sin venta asociada.
+Ordenado por peso en la rúbrica, no por gusto.
+
+**Login funcional (15%)**
+- [ ] Registro valida formato de correo y contraseña segura.
+- [ ] La cuenta nace en estado pendiente y el sistema lo dice con un mensaje claro.
+- [ ] Una cuenta inactiva no entra, y el aviso explica por qué.
 - [ ] Las contraseñas no se pueden leer en la base de datos.
-- [ ] La app abre en Expo Go sin warnings en consola.
+
+**Navegación y Home (10%)**
+- [ ] Tras iniciar sesión, cada rol aterriza en su home.
+- [ ] La sesión sobrevive al cierre de la aplicación.
+- [ ] El cliente no alcanza ninguna pantalla de administrador, ni escribiendo la ruta.
+
+**Entidades (30%)**
+- [ ] Las 5 tablas existen con los campos del enunciado.
+- [ ] Productos tiene CRUD completo del administrador.
+- [ ] Clientes se crea, se consulta y se edita.
+- [ ] El administrador ve el listado de clientes y el de compras.
+
+**Diseño visual (15%)**
+- [ ] Menú presente en todas las pantallas de ambos roles.
+- [ ] Login y home consistentes con el resto.
+- [ ] Cada formulario valida y muestra el error al lado del campo.
+
+**Funcionamiento general (30%)**
+- [ ] La compra es atómica: o entra encabezado, detalles y descuento de stock, o no entra nada.
+- [ ] No se puede comprar más unidades que el stock disponible.
+- [ ] No se puede comprar sin datos de cliente ni sin productos registrados.
+- [ ] El total del encabezado es igual a la suma de sus detalles.
+- [ ] El stock nunca queda negativo.
+- [ ] La aplicación abre en Expo Go sin warnings en consola.
 - [ ] Los dos entienden el código completo, no solo su parte.
