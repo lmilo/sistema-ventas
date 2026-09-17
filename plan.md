@@ -270,30 +270,48 @@ Traer todo a memoria y sumar con `.reduce()` es el anti-patrón clásico. Para e
 
 ## 7. Reparto del trabajo
 
-### Camilo (@lmilo)
+El corte es **por capa dentro de cada módulo**: Nataly escribe datos y lógica, Camilo escribe las vistas que los consumen. Un módulo, dos dueños, archivos distintos. Nadie edita el archivo del otro.
+
+Excepción acordada: la **lógica** de autenticación, checkout y facturación la escribe Camilo, aunque no sea vista. Son los tres puntos que más pesan en la sustentación.
+
+### Módulos
+
+| Módulo | Datos y lógica (Nataly) | Vistas (Camilo) |
+|---|---|---|
+| Plataforma | `db/esquema.ts`, `db/seed.ts` | — |
+| Autenticación | — | `lib/auth.ts`, `db/usuarios.ts`, `app/login.tsx`, `app/registro.tsx`, `lib/guard.tsx` |
+| Clientes | `db/clientes.ts` | `app/(admin)/clientes.tsx` |
+| Productos | `db/productos.ts`, `lib/imagenes.ts` | `app/(admin)/productos.tsx`, `app/(cliente)/catalogo.tsx`, `components/SelectorImagen.tsx` |
+| Carrito y checkout | — | `db/ventas.ts` (`crearVenta`), `app/(cliente)/carrito.tsx` |
+| Ventas e historial | `db/ventas.ts` (consultas) | `app/(admin)/ventas.tsx`, `app/(cliente)/mis-compras.tsx` |
+| Facturación | — | `lib/factura.ts` |
+| Dashboard | `db/reportes.ts` | `app/(admin)/dashboard.tsx` |
+| Sistema visual | — | `components/`, `theme.ts` |
+
+### Camilo (@lmilo) — 8 entregables
 
 | # | Entregable | Archivos |
 |---|---|---|
-| C1 | Autenticación segura: scrypt + salt, bloqueo por intentos, sesión en SecureStore, guard por rol | `lib/auth.ts`, `app/_layout.tsx`, `app/login.tsx`, `app/registro.tsx`, `db/usuarios.ts` |
-| C2 | Carrito y checkout transaccional (§6.3) | `app/(cliente)/carrito.tsx`, `db/ventas.ts` |
-| C3 | Facturas en PDF y compartir | `lib/factura.ts` |
-| C4 | Dashboard financiero (§6.6) | `app/(admin)/dashboard.tsx` |
-| C5 | Imágenes de productos: picker + almacenamiento permanente (§6.5) | `components/SelectorImagen.tsx` |
-| C6 | Precio de compra y cálculo de márgenes | `db/productos.ts` (campos), `lib/moneda.ts` |
-| C7 | Ventas del admin: listado de encabezados con detalle expandible | `app/(admin)/ventas.tsx` |
-| C8 | Mis compras del cliente + inicio del cliente | `app/(cliente)/mis-compras.tsx`, `app/(cliente)/inicio.tsx` |
+| C1 | Autenticación completa: scrypt + salt, bloqueo por intentos, sesión en SecureStore, guard por rol, pantallas de login y registro | `lib/auth.ts`, `db/usuarios.ts`, `lib/sesion.tsx`, `lib/guard.tsx`, `app/login.tsx`, `app/registro.tsx` |
+| C2 | Catálogo del cliente: grilla con imágenes, búsqueda, agregar al carrito | `app/(cliente)/catalogo.tsx` |
+| C3 | Formulario de productos del admin y selector de imágenes | `app/(admin)/productos.tsx`, `components/SelectorImagen.tsx` |
+| C4 | Carrito y checkout: `crearVenta` transaccional (§6.3) más toda la interfaz del flujo | `db/ventas.ts` (`crearVenta`), `app/(cliente)/carrito.tsx` |
+| C5 | Pantallas de consulta: ventas del admin, mis compras, clientes del admin | `app/(admin)/ventas.tsx`, `app/(cliente)/mis-compras.tsx`, `app/(admin)/clientes.tsx` |
+| C6 | Facturación: plantilla HTML, generación de PDF y compartir | `lib/factura.ts` |
+| C7 | Dashboard financiero: tarjetas, bajo stock, formato de moneda | `app/(admin)/dashboard.tsx`, `lib/moneda.ts` |
+| C8 | Sistema visual: componentes compartidos, tema, estados de carga, vacío y error | `components/`, `theme.ts`, `app/(cliente)/inicio.tsx` |
 
-### Nataly (@Nataly97)
+### Nataly (@Nataly97) — 5 entregables
 
 | # | Entregable | Archivos |
 |---|---|---|
-| N1 | Esquema, migraciones con `PRAGMA user_version` y `SQLiteProvider` | `db/esquema.ts` |
-| N2 | Repositorio de clientes + pantalla de clientes (admin, solo lectura) | `db/clientes.ts`, `app/(admin)/clientes.tsx` |
-| N3 | Repositorio de productos + formulario CRUD del admin (crear, editar, subir stock) | `db/productos.ts`, `app/(admin)/productos.tsx` |
-| N4 | Catálogo del cliente (listado, búsqueda, "agregar al carrito") | `app/(cliente)/catalogo.tsx` |
-| N5 | Componentes UI compartidos y datos de prueba (seed) | `components/`, `db/seed.ts` |
+| N1 | Plataforma de datos: esquema completo, migraciones con `PRAGMA user_version`, PRAGMAs de arranque y datos de prueba | `db/esquema.ts`, `db/seed.ts` |
+| N2 | Repositorio de clientes | `db/clientes.ts` |
+| N3 | Repositorio de productos: CRUD, validaciones de stock y precio, guardado de la imagen en disco (§6.5) | `db/productos.ts`, `lib/imagenes.ts` |
+| N4 | Consultas de ventas: historial por cliente, listado del admin, venta con sus detalles | `db/ventas.ts` (lectura) |
+| N5 | Consultas del dashboard: agregaciones de ingresos, ganancia, bajo stock y clientes (§6.6) | `db/reportes.ts` |
 
-**Criterio del corte:** Camilo se queda con todo el dominio de **venta y dinero** (carrito, checkout, factura, ventas del admin, historial del cliente, dashboard) más autenticación. Nataly se queda con los **maestros** (clientes, productos, catálogo) y la base de datos. Así casi nunca tocan el mismo archivo.
+**Riesgo asumido, que quede escrito:** Nataly no toca ninguna pantalla en todo el proyecto. Si el profesor pregunta en sustentación por la interfaz, ella debe poder explicarla igual. Camilo queda con diez pantallas: es la carga más alta del equipo y se decidió a conciencia.
 
 **Trabajo conjunto (Fase 0, antes de que cada uno arranque por su lado):** definir `db/tipos.ts` y las **firmas** de todas las funciones de `db/`. Ver §8.
 
@@ -301,22 +319,22 @@ Traer todo a memoria y sumar con `.reduce()` es el anti-patrón clásico. Para e
 
 ## 8. Cómo no chocarnos
 
-El riesgo real de este proyecto no es técnico, es de merge. Tres reglas:
+Con el corte por capa, los dos trabajan sobre el mismo módulo al mismo tiempo. El contrato deja de ser una buena práctica y pasa a ser la condición para que esto funcione.
 
-**1. El contrato va primero.** En la Fase 0 se escribe `db/tipos.ts` completo y las firmas vacías de cada repositorio:
+**1. El contrato va primero, y es ley.** En la Fase 0 se escribe `db/tipos.ts` completo y las firmas de cada repositorio, con el cuerpo lanzando `throw new Error('N3 pendiente: ...')`:
 
 ```ts
 export async function crearVenta(db: SQLiteDatabase, idCliente: number, items: ItemCarrito[]): Promise<number>
 export async function ventasDeCliente(db: SQLiteDatabase, idCliente: number): Promise<VentaResumen[]>
 ```
 
-Con eso, Camilo programa el carrito contra `crearVenta()` aunque Nataly todavía no la haya implementado, y al revés. Ese archivo se commitea y **no se toca solo**: cambiarlo requiere avisar.
+Camilo programa la pantalla contra esa firma aunque el cuerpo todavía no exista. Cambiar una firma ya acordada **exige avisar al otro antes**, porque rompe código ajeno al instante.
 
-**2. Una rama por entregable.** `feat/C2-checkout`, `feat/N3-productos`. Nadie commitea directo a `main`. PR y revisión del otro antes de mezclar — así los dos entienden todo el código, que es lo que el profesor va a preguntar en la sustentación.
+**2. Un archivo, un dueño.** La tabla de §7 dice quién manda en cada archivo. `db/` es de Nataly salvo `db/usuarios.ts` y la función `crearVenta`; `app/` y `components/` son de Camilo. Si necesitas tocar un archivo ajeno, se avisa antes.
 
-**3. Un archivo, un dueño.** La tabla de §7 dice quién manda en cada archivo. Si necesitas tocar un archivo ajeno, se avisa antes.
+**3. `db/ventas.ts` es el único archivo compartido.** Camilo escribe `crearVenta` (la transacción); Nataly escribe las consultas de lectura. Para no chocar: Camilo lo crea en la Fase 0 con su función y las firmas de lectura vacías, y desde ahí cada uno toca solo sus funciones. No se reordena el archivo ni se reformatea completo.
 
-**El único choque previsto es `productos`.** Nataly construye el repositorio y el formulario (N3); Camilo aporta `precio_compra` e `imagen_uri` (C5, C6). Para que no se pisen: las dos columnas entran en el esquema desde la Fase 0, así N3 ya se construye con esos campos, y Camilo solo entrega el componente `SelectorImagen` para que ella lo inserte. Nadie reescribe el trabajo del otro.
+**4. Una rama por entregable.** `feat/C4-checkout`, `feat/N3-productos`. Nadie commitea directo a `main`. PR y revisión del otro antes de mezclar — así los dos entienden todo el código, que es lo que el profesor va a preguntar en la sustentación.
 
 ---
 
@@ -325,11 +343,11 @@ Con eso, Camilo programa el carrito contra `crearVenta()` aunque Nataly todavía
 | Fase | Contenido | Quién |
 |---|---|---|
 | 0 | Instalar dependencias, migrar a `expo-router`, definir `db/tipos.ts` y firmas | Los dos, sentados juntos |
-| 1 | Esquema + migraciones + seed · Auth con scrypt + guard por rol | N1 · C1 |
-| 2 | CRUD productos (admin) · Imágenes + precio de compra | N3 · C5, C6 |
-| 3 | Catálogo del cliente · Carrito + checkout transaccional | N4 · C2 |
-| 4 | Clientes (admin) · Ventas del admin + mis compras | N2 · C7, C8 |
-| 5 | UI compartida y pulido · Facturas PDF + dashboard financiero | N5 · C3, C4 |
+| 1 | Esquema, migraciones y seed · Autenticación completa | N1 · C1 |
+| 2 | Repositorio de productos e imágenes · Formulario de productos y catálogo | N3 · C2, C3 |
+| 3 | Repositorio de clientes · Carrito y checkout transaccional | N2 · C4 |
+| 4 | Consultas de ventas · Pantallas de consulta y facturación | N4 · C5, C6 |
+| 5 | Consultas del dashboard · Dashboard y sistema visual | N5 · C7, C8 |
 | 6 | Pruebas de extremo a extremo, datos de demo, ensayo de sustentación | Los dos |
 
 > Fechas: pendientes de la entrega real. Ajustar al calendario del curso.
