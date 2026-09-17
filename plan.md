@@ -293,6 +293,39 @@ Traer todo a memoria y sumar con `.reduce()` es el anti-patrón clásico. Para e
 | N4 | Catálogo del cliente (listado, búsqueda, "agregar al carrito") | `app/(cliente)/catalogo.tsx` |
 | N5 | Componentes UI compartidos y datos de prueba (seed) | `components/`, `db/seed.ts` |
 
+### Documentación simple de los cambios N1 a N4
+
+#### N1 — Base de datos y preparación
+- Se creó la base principal del sistema con las tablas de usuarios, clientes, productos, ventas y detalles.
+- Se activó la seguridad básica de SQLite para que las relaciones entre tablas funcionen bien.
+- Se dejó la base lista para usar desde la app, sin que cada pantalla tenga que crear su propia tabla.
+- Esto pertenece a la parte de estructura y orden inicial del proyecto.
+
+#### N2 — Clientes
+- Se configuró la parte de clientes para verlos, buscarlos y mostrar su historial de compras.
+- La vista del administrador puede ver cuántas compras hizo cada cliente y cuánto gastó.
+- Esto ayuda a controlar a los clientes sin mezclar la información de ventas con la de productos.
+- La idea es que el admin solo observe, no cree clientes desde esa pantalla.
+
+#### N3 — Productos
+- Se armó el manejo de productos: crear, editar, consultar, activar o desactivar y subir stock.
+- Se guardan datos importantes como precio de compra, precio de venta y la ruta de la imagen.
+- Esto permite mantener el inventario ordenado y listo para vender.
+- La parte de productos queda como el centro del manejo del negocio.
+
+#### N4 — Catálogo del cliente
+- Se dejó listo el flujo para que el cliente vea los productos disponibles y los pueda buscar.
+- El cliente puede elegir productos y agregarlos a su carrito de compra.
+- Esto prepara la venta real, sin que la lógica de compra quede mezclada con la administración del sistema.
+- La pantalla del cliente queda enfocada en comprar y revisar sus opciones.
+
+#### N5 — Componentes reutilizables y datos de prueba
+- Se prepararon los elementos visuales que se repiten en varias pantallas para mantener la interfaz más ordenada.
+- Esto incluye componentes básicos como botones, campos de texto y layouts para login o pantallas principales.
+- La idea es que todas las pantallas usen la misma estructura visual y no queden hechas de forma distinta.
+- También se dejan datos iniciales para probar la app sin que esté vacía al arrancarla.
+- Con esto, la aplicación se ve más completa desde el principio y es más fácil probar funciones de cliente, productos y ventas.
+
 **Criterio del corte:** Camilo se queda con todo el dominio de **venta y dinero** (carrito, checkout, factura, ventas del admin, historial del cliente, dashboard) más autenticación. Nataly se queda con los **maestros** (clientes, productos, catálogo) y la base de datos. Así casi nunca tocan el mismo archivo.
 
 **Trabajo conjunto (Fase 0, antes de que cada uno arranque por su lado):** definir `db/tipos.ts` y las **firmas** de todas las funciones de `db/`. Ver §8.
