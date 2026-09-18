@@ -18,7 +18,7 @@ Fuente: `Parcial practico.docx`. Esto es lo que se califica.
 | HU-01 | Registro público con correo y contraseña. Queda en estado **Pendiente/Inactivo** y avisa que un administrador debe aprobarla |
 | HU-02 | El administrador ve las solicitudes pendientes, **asigna rol** (Admin o Cliente) y activa la cuenta |
 | HU-03 | Login con control por estado y rol. Cuenta inactiva: acceso denegado con aviso explicativo |
-| HU-04 | El cliente consulta y edita sus datos personales. El administrador ve el listado de clientes |
+| HU-04 | El cliente consulta y edita sus datos personales. El administrador ve el listado de clientes. Campos según la tabla Cliente, ver §4 |
 | HU-05 | Catálogo de productos. Solo se selecciona con stock mayor a cero y nunca por encima del stock |
 | HU-06 | Compra: inserta encabezado, inserta detalles y descuenta stock. **Transacción atómica** |
 | HU-07 | CRUD de productos, exclusivo del administrador, con validación de valor unitario positivo y stock entero mayor o igual a cero |
@@ -95,7 +95,11 @@ En `app.json`: agregar `"scheme": "ventasapp"` y `"experiments": { "typedRoutes"
 
 ## 4. Modelo de datos
 
-> **Pendiente de confirmar contra las tablas del `.docx`.** El enunciado trae las tablas como imágenes y aquí están reconstruidas desde el texto de las historias. Antes de escribir `db/esquema.ts` hay que cotejar nombres y campos exactos. Diferencia ya detectada: HU-04 habla de **Nombre y Apellido**, mientras que la versión anterior de este plan usaba nombre completo y fecha de nacimiento.
+> **Dos conflictos dentro del propio enunciado, resueltos a favor de las tablas.**
+> 1. La tabla Cliente define nombre completo y fecha de nacimiento, pero HU-04 dice "editar mis datos personales (Nombre, Apellido, Correo)". Mandan las tablas: se usa `nombre_completo` y `fecha_nacimiento`, y la pantalla de perfil edita esos campos. **Confirmar con el profesor.**
+> 2. La tabla Login no tiene columna de estado, pero HU-01 y HU-02 exigen que la cuenta nazca pendiente y que un administrador la active. Sin esa columna las dos historias no se pueden cumplir, así que `estado` se agrega. Es la única columna añadida a una tabla del enunciado.
+>
+> Los campos extra marcados abajo (`precio_compra`, `imagen_uri`, `valor_unitario` y `costo_unitario` en detalle) son de §2 y no reemplazan nada de lo pedido.
 
 ```sql
 PRAGMA journal_mode = WAL;
@@ -117,41 +121,41 @@ CREATE TABLE login (
 
 -- HU-03, HU-04. Se crea en el primer ingreso del cliente, no en el registro.
 CREATE TABLE cliente (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  id_login   INTEGER NOT NULL UNIQUE REFERENCES login(id) ON DELETE CASCADE,
-  nombre     TEXT NOT NULL,
-  apellido   TEXT NOT NULL,
-  correo     TEXT NOT NULL UNIQUE COLLATE NOCASE
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_login         INTEGER NOT NULL UNIQUE REFERENCES login(id) ON DELETE CASCADE,
+  nombre_completo  TEXT NOT NULL,
+  fecha_nacimiento TEXT NOT NULL,             -- ISO: yyyy-mm-dd
+  correo           TEXT NOT NULL UNIQUE COLLATE NOCASE
 );
 
 -- HU-05, HU-07. precio_compra e imagen_uri son extras nuestros (§2).
 CREATE TABLE producto (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre         TEXT NOT NULL,
-  descripcion    TEXT,
-  valor_unitario REAL NOT NULL CHECK (valor_unitario > 0),
-  stock          INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
-  precio_compra  REAL NOT NULL DEFAULT 0 CHECK (precio_compra >= 0),
-  imagen_uri     TEXT,
-  activo         INTEGER NOT NULL DEFAULT 1
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre          TEXT NOT NULL,
+  descripcion     TEXT,
+  stock           INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
+  precio_unitario REAL NOT NULL CHECK (precio_unitario > 0),
+  precio_compra   REAL NOT NULL DEFAULT 0 CHECK (precio_compra >= 0),   -- extra §2
+  imagen_uri      TEXT,                                                 -- extra §2
+  activo          INTEGER NOT NULL DEFAULT 1
 );
 
 -- HU-06
 CREATE TABLE encabezado (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  id_cliente INTEGER NOT NULL REFERENCES cliente(id),
-  fecha      TEXT NOT NULL DEFAULT (datetime('now')),
-  total      REAL NOT NULL DEFAULT 0
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_cliente  INTEGER NOT NULL REFERENCES cliente(id),
+  fecha_venta TEXT NOT NULL DEFAULT (datetime('now')),
+  total       REAL NOT NULL DEFAULT 0
 );
 
 CREATE TABLE detalle (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  id_encabezado  INTEGER NOT NULL REFERENCES encabezado(id) ON DELETE CASCADE,
-  id_producto    INTEGER NOT NULL REFERENCES producto(id),
-  cantidad       INTEGER NOT NULL CHECK (cantidad > 0),
-  valor_unitario REAL NOT NULL,   -- congelado, ver §6.2
-  costo_unitario REAL NOT NULL,   -- congelado, para calcular ganancia
-  subtotal       REAL NOT NULL
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_encabezado   INTEGER NOT NULL REFERENCES encabezado(id) ON DELETE CASCADE,
+  id_producto     INTEGER NOT NULL REFERENCES producto(id),
+  cantidad        INTEGER NOT NULL CHECK (cantidad > 0),
+  subtotal        REAL NOT NULL,
+  precio_unitario REAL NOT NULL,   -- extra §2: congelado, ver §6.2
+  costo_unitario  REAL NOT NULL    -- extra §2: congelado, para calcular ganancia
 );
 
 CREATE INDEX idx_detalle_encabezado ON detalle(id_encabezado);
