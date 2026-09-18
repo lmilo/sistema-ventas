@@ -348,28 +348,32 @@ Excepción acordada: la **lógica** de autenticación, checkout y facturación l
 
 | # | Entregable | HU / Rúbrica | Archivos |
 |---|---|---|---|
-| C1 | Autenticación: registro en estado pendiente, login con control de estado y rol, scrypt + salt, bloqueo por intentos, sesión en SecureStore, guard | HU-01, HU-03 · 15% + 10% | `lib/auth.ts`, `db/login.ts`, `lib/sesion.tsx`, `lib/guard.tsx`, `app/login.tsx`, `app/registro.tsx` |
+| C1 | Autenticación: registro en estado pendiente, login con control de estado y rol, scrypt + salt, bloqueo por intentos, sesión en SecureStore, guard | HU-01, HU-03 · 15% + 10% | `lib/auth.ts`, `lib/sesion.tsx`, `lib/guard.tsx`, `app/login.tsx`, `app/registro.tsx` |
 | C2 | Aprobación de cuentas: listado de solicitudes pendientes, asignar rol y activar | HU-02 | `app/(admin)/solicitudes.tsx` |
 | C3 | Perfil del cliente: pantalla obligatoria de primer ingreso y edición posterior | HU-03, HU-04 | `app/completar-perfil.tsx`, `app/(cliente)/perfil.tsx` |
 | C4 | Pantalla de compra: catálogo con stock, selección de cantidades, validación contra stock y confirmación | HU-05 · 15% diseño | `app/(cliente)/comprar.tsx` |
 | C5 | Lógica de compra: `crearCompra` transaccional, encabezado + detalles + descuento de stock | HU-06 · 30% | `db/compras.ts` (`crearCompra`) |
-| C6 | Pantallas de consulta: compras del admin, mis compras, listado de clientes | HU-04 · 30% | `app/(admin)/compras.tsx`, `app/(cliente)/mis-compras.tsx`, `app/(admin)/clientes.tsx` |
-| C7 | Formulario de productos del admin y selector de imágenes | HU-07 · 30% | `app/(admin)/productos.tsx`, `components/SelectorImagen.tsx` |
-| C8 | Sistema visual: **menú en todas las pantallas**, tema, estados de carga, vacío y error, home de cada rol | 15% + 10% | `components/`, `theme.ts`, ambos `_layout.tsx`, pantallas de inicio |
+| C6 | Pantallas de consulta: compras del admin y mis compras | 30% | `app/(admin)/compras.tsx`, `app/(cliente)/mis-compras.tsx` |
+| C7 | Sistema visual: **menú en todas las pantallas**, tema, estados de carga, vacío y error, home de cada rol | 15% + 10% | `components/`, `theme.ts`, ambos `_layout.tsx`, pantallas de inicio |
+| C8 | Extras de §2: facturas en PDF y dashboard financiero | — | `lib/factura.ts`, `app/(admin)/inicio.tsx` |
 
-Extras de §2 (facturas, dashboard financiero) van **después** de que C1–C8 estén cerrados. No antes.
+C8 va **al final**. Si el tiempo aprieta, es lo único que se suelta sin perder nota.
 
 ### Nataly (@Nataly97) — 5 entregables
 
 | # | Entregable | HU / Rúbrica | Archivos |
 |---|---|---|---|
-| N1 | Plataforma de datos: las 5 tablas, migraciones con `PRAGMA user_version`, PRAGMAs de arranque, seed con un admin inicial | 30% funcionamiento | `db/esquema.ts`, `db/seed.ts` |
-| N2 | Repositorio de login: crear solicitud, listar pendientes, aprobar con rol, cambiar estado | HU-01, HU-02 | `db/login.ts` (todo menos la verificación de contraseña) |
-| N3 | Repositorio de clientes: crear en primer ingreso, leer por usuario, actualizar, listar | HU-04 · 30% CRUD | `db/clientes.ts` |
-| N4 | Repositorio de productos: CRUD completo, validación de valor unitario positivo y stock entero, guardado de imagen en disco | HU-07 · 30% CRUD | `db/productos.ts`, `lib/imagenes.ts` |
+| N1 | Plataforma de datos: las 5 tablas con los nombres del enunciado, migraciones con `PRAGMA user_version`, PRAGMAs de arranque, seed con un admin inicial | 30% funcionamiento | `db/esquema.ts`, `db/seed.ts` |
+| N2 | Repositorio de login: crear solicitud en estado pendiente, listar pendientes, aprobar asignando rol, cambiar estado | HU-01, HU-02 | `db/login.ts` (todo menos la verificación de contraseña) |
+| N3 | Clientes: repositorio completo y pantalla de listado del administrador | HU-04 · 30% CRUD | `db/clientes.ts`, `app/(admin)/clientes.tsx` |
+| N4 | Productos: repositorio con CRUD, validaciones de precio y stock, guardado de imagen, y pantalla de gestión del administrador | HU-07 · 30% CRUD | `db/productos.ts`, `lib/imagenes.ts`, `app/(admin)/productos.tsx` |
 | N5 | Consultas de compras y reportes: historial por cliente, listado del admin, compra con sus detalles, agregaciones del dashboard | HU-06 · 30% | `db/compras.ts` (lectura), `db/reportes.ts` |
 
-**Riesgo asumido, que quede escrito:** Nataly no toca ninguna pantalla en todo el proyecto. Si el profesor pregunta en sustentación por la interfaz, ella debe poder explicarla igual. Camilo queda con diez pantallas: es la carga más alta del equipo y se decidió a conciencia.
+N3 y N4 ya están escritas y mezcladas a `main` (commit `2ca7fc3`): falta ajustarlas a los nombres de tabla del enunciado y al ciclo de aprobación de cuentas.
+
+**Excepción al corte por capa:** las pantallas de clientes y productos quedan de Nataly porque ya las construyó. El resto de vistas sigue siendo de Camilo.
+
+**Riesgo asumido, que quede escrito:** Camilo queda con nueve pantallas y toda la autenticación. Es la carga más alta del equipo y se decidió a conciencia. Nataly toca solo dos vistas, así que en la sustentación debe poder explicar igual las que no escribió.
 
 **Trabajo conjunto (Fase 0, antes de que cada uno arranque por su lado):** definir `db/tipos.ts` y las **firmas** de todas las funciones de `db/`. Ver §8.
 
@@ -474,3 +478,16 @@ Ordenado por peso en la rúbrica, no por gusto.
 - [ ] El stock nunca queda negativo.
 - [ ] La aplicación abre en Expo Go sin warnings en consola.
 - [ ] Los dos entienden el código completo, no solo su parte.
+
+---
+
+## 12. Bitácora
+
+### 2026-09-17 — Nataly, commit `2ca7fc3`
+
+- **N1.** Base de datos creada con las cinco tablas, `PRAGMA foreign_keys = ON`, WAL y migración por `user_version`. Queda disponible desde el provider, sin que cada pantalla cree sus tablas.
+- **N3.** Clientes: consulta, búsqueda e historial. La vista del administrador muestra cuántas compras hizo cada cliente y cuánto gastó. El administrador solo observa, no crea clientes.
+- **N4.** Productos: crear, editar, consultar, activar o desactivar y subir stock, con precio de compra, precio de venta y ruta de imagen.
+- Montó además `expo-router` y las dependencias del plan.
+
+Pendiente de ajustar tras el enunciado: nombres de tabla, columna `estado` y rol nulo hasta aprobación.
