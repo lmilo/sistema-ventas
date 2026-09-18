@@ -3,6 +3,7 @@ import { useSQLiteContext } from 'expo-sqlite'
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import Boton from '../components/Boton'
+import Aviso from '../components/Aviso'
 import Campo from '../components/Campo'
 import LayoutAuth from '../components/LayoutAuth'
 import { correoRegistrado, crearCuentaPendiente } from '../db/login'
@@ -126,12 +127,7 @@ export default function Registro() {
           returnKeyType="go"
         />
 
-        {error !== '' && (
-          <View style={shared.alerta}>
-            <View style={shared.alertaPunto} />
-            <Text style={shared.alertaTexto}>{error}</Text>
-          </View>
-        )}
+        <Aviso texto={error} />
 
         <Boton titulo={guardando ? 'Enviando…' : 'Solicitar acceso'} onPress={crearCuenta} />
 

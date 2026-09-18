@@ -2,12 +2,15 @@ import { useFocusEffect } from 'expo-router'
 import { useSQLiteContext } from 'expo-sqlite'
 import { useCallback, useState } from 'react'
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
+import Aviso from '../../components/Aviso'
 import Cargando from '../../components/Cargando'
 import Encabezado from '../../components/Encabezado'
+import EstadoVacio from '../../components/EstadoVacio'
+import Tarjeta from '../../components/Tarjeta'
 import { aprobarCuenta, listarSolicitudes } from '../../db/login'
 import type { RolUsuario, Solicitud } from '../../db/tipos'
 import { fechaLegible } from '../../lib/moneda'
-import { colors, radios, shared } from '../../theme'
+import { colors, radios } from '../../theme'
 
 /** HU-02: el administrador ve las solicitudes pendientes, asigna rol y activa. */
 export default function Solicitudes() {
@@ -48,33 +51,23 @@ export default function Solicitudes() {
         bajada={`${solicitudes.length} cuenta(s) esperando aprobación`}
       />
 
-      {error !== '' && (
-        <View style={[shared.alerta, styles.margen]}>
-          <View style={shared.alertaPunto} />
-          <Text style={shared.alertaTexto}>{error}</Text>
-        </View>
-      )}
-
-      {aviso !== '' && (
-        <View style={[styles.exito, styles.margen]}>
-          <Text style={styles.exitoTexto}>{aviso}</Text>
-        </View>
-      )}
+      <View style={styles.margen}>
+        <Aviso texto={error} />
+        <Aviso texto={aviso} tono="exito" />
+      </View>
 
       <FlatList
         data={solicitudes}
         keyExtractor={item => String(item.id)}
         contentContainerStyle={styles.lista}
         ListEmptyComponent={
-          <View style={styles.vacio}>
-            <Text style={styles.vacioTitulo}>No hay solicitudes pendientes</Text>
-            <Text style={styles.vacioTexto}>
-              Cuando alguien se registre, aparecerá aquí para que le asignes un rol.
-            </Text>
-          </View>
+          <EstadoVacio
+            titulo="No hay solicitudes pendientes"
+            texto="Cuando alguien se registre, aparecerá aquí para que le asignes un rol."
+          />
         }
         renderItem={({ item }) => (
-          <View style={styles.tarjeta}>
+          <Tarjeta style={styles.tarjeta}>
             <View style={styles.datos}>
               <Text style={styles.correo}>{item.correo}</Text>
               <Text style={styles.fecha}>Solicitó el {fechaLegible(item.creadoEn)}</Text>
@@ -97,7 +90,7 @@ export default function Solicitudes() {
                 <Text style={styles.botonAdminTexto}>Activar como admin</Text>
               </Pressable>
             </View>
-          </View>
+          </Tarjeta>
         )}
       />
     </View>
@@ -118,12 +111,7 @@ const styles = StyleSheet.create({
     gap: 12
   },
   tarjeta: {
-    gap: 14,
-    backgroundColor: colors.superficie,
-    borderWidth: 1,
-    borderColor: colors.borde,
-    borderRadius: radios.lg,
-    padding: 16
+    gap: 14
   },
   datos: {
     gap: 3
@@ -162,31 +150,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 13,
     color: '#ffffff'
-  },
-  vacio: {
-    alignItems: 'center',
-    gap: 6,
-    padding: 32
-  },
-  vacioTitulo: {
-    fontWeight: '600',
-    fontSize: 16,
-    color: colors.tinta
-  },
-  vacioTexto: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: colors.tintaSuave
-  },
-  exito: {
-    backgroundColor: '#ecfdf5',
-    borderRadius: radios.md,
-    paddingVertical: 10,
-    paddingHorizontal: 14
-  },
-  exitoTexto: {
-    fontWeight: '500',
-    fontSize: 14,
-    color: '#047857'
   }
 })

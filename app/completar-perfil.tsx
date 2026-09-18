@@ -3,6 +3,7 @@ import { useSQLiteContext } from 'expo-sqlite'
 import { useState } from 'react'
 import { Text, View } from 'react-native'
 import Boton from '../components/Boton'
+import Aviso from '../components/Aviso'
 import Campo from '../components/Campo'
 import LayoutAuth from '../components/LayoutAuth'
 import { crearCliente } from '../db/clientes'
@@ -106,12 +107,7 @@ export default function CompletarPerfil() {
           keyboardType="email-address"
         />
 
-        {error !== '' && (
-          <View style={shared.alerta}>
-            <View style={shared.alertaPunto} />
-            <Text style={shared.alertaTexto}>{error}</Text>
-          </View>
-        )}
+        <Aviso texto={error} />
 
         <Boton titulo={guardando ? 'Guardando…' : 'Guardar y continuar'} onPress={guardar} />
       </View>

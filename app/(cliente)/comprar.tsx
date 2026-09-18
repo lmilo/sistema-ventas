@@ -2,16 +2,18 @@ import { useFocusEffect } from 'expo-router'
 import { useSQLiteContext } from 'expo-sqlite'
 import { useCallback, useMemo, useState } from 'react'
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import Aviso from '../../components/Aviso'
 import Boton from '../../components/Boton'
 import Cargando from '../../components/Cargando'
 import Encabezado from '../../components/Encabezado'
+import EstadoVacio from '../../components/EstadoVacio'
 import { obtenerClientePorLogin } from '../../db/clientes'
 import { crearCompra } from '../../db/compras'
 import { listarProductos } from '../../db/productos'
 import type { ItemCompra, Producto } from '../../db/tipos'
 import { pesos } from '../../lib/moneda'
 import { useSesion } from '../../lib/sesion'
-import { colors, radios, shared } from '../../theme'
+import { colors, radios } from '../../theme'
 
 export default function Comprar() {
   const db = useSQLiteContext()
@@ -120,12 +122,10 @@ export default function Comprar() {
     return (
       <View style={styles.raiz}>
         <Encabezado titulo="Comprar" />
-        <View style={styles.vacio}>
-          <Text style={styles.vacioTitulo}>Todavía no hay productos</Text>
-          <Text style={styles.vacioTexto}>
-            Un administrador debe registrar productos antes de que puedas comprar.
-          </Text>
-        </View>
+        <EstadoVacio
+          titulo="Todavía no hay productos"
+          texto="Un administrador debe registrar productos antes de que puedas comprar."
+        />
       </View>
     )
   }
@@ -148,10 +148,10 @@ export default function Comprar() {
         keyExtractor={item => String(item.id)}
         contentContainerStyle={styles.lista}
         ListEmptyComponent={
-          <View style={styles.vacio}>
-            <Text style={styles.vacioTitulo}>Sin resultados</Text>
-            <Text style={styles.vacioTexto}>Ningún producto con stock coincide con la búsqueda.</Text>
-          </View>
+          <EstadoVacio
+            titulo="Sin resultados"
+            texto="Ningún producto con stock coincide con la búsqueda."
+          />
         }
         renderItem={({ item }) => {
           const cantidad = cantidades[item.id] ?? 0
@@ -194,18 +194,8 @@ export default function Comprar() {
       />
 
       <View style={styles.resumen}>
-        {error !== '' && (
-          <View style={shared.alerta}>
-            <View style={shared.alertaPunto} />
-            <Text style={shared.alertaTexto}>{error}</Text>
-          </View>
-        )}
-
-        {aviso !== '' && (
-          <View style={styles.exito}>
-            <Text style={styles.exitoTexto}>{aviso}</Text>
-          </View>
-        )}
+        <Aviso texto={error} />
+        <Aviso texto={aviso} tono="exito" />
 
         <View style={styles.totales}>
           <Text style={styles.totalEtiqueta}>
@@ -322,30 +312,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     color: colors.tinta
   },
-  vacio: {
-    alignItems: 'center',
-    gap: 6,
-    padding: 32
-  },
-  vacioTitulo: {
-    fontWeight: '600',
-    fontSize: 16,
-    color: colors.tinta
-  },
-  vacioTexto: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: colors.tintaSuave
-  },
-  exito: {
-    backgroundColor: '#ecfdf5',
-    borderRadius: radios.md,
-    paddingVertical: 10,
-    paddingHorizontal: 14
-  },
-  exitoTexto: {
-    fontWeight: '500',
-    fontSize: 14,
-    color: '#047857'
-  }
 })

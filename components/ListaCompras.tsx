@@ -1,6 +1,7 @@
 import { useSQLiteContext } from 'expo-sqlite'
 import { useState } from 'react'
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
+import EstadoVacio from './EstadoVacio'
 import { compraCompleta } from '../db/compras'
 import { compartirFactura } from '../lib/factura'
 import type { CompraCompleta, CompraResumen } from '../db/tipos'
@@ -43,10 +44,7 @@ export default function ListaCompras({
       keyExtractor={item => String(item.id)}
       contentContainerStyle={styles.lista}
       ListEmptyComponent={
-        <View style={styles.vacio}>
-          <Text style={styles.vacioTitulo}>{vacioTitulo}</Text>
-          <Text style={styles.vacioTexto}>{vacioTexto}</Text>
-        </View>
+        <EstadoVacio titulo={vacioTitulo} texto={vacioTexto} />
       }
       renderItem={({ item }) => {
         const expandida = abierta === item.id
@@ -194,20 +192,5 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     fontSize: 13,
     color: colors.tintaTenue
-  },
-  vacio: {
-    alignItems: 'center',
-    gap: 6,
-    padding: 32
-  },
-  vacioTitulo: {
-    fontWeight: '600',
-    fontSize: 16,
-    color: colors.tinta
-  },
-  vacioTexto: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: colors.tintaSuave
   }
 })

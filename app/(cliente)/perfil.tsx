@@ -2,13 +2,15 @@ import { useSQLiteContext } from 'expo-sqlite'
 import { useCallback, useEffect, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import Boton from '../../components/Boton'
+import Aviso from '../../components/Aviso'
 import Campo from '../../components/Campo'
 import Cargando from '../../components/Cargando'
 import Encabezado from '../../components/Encabezado'
+import Tarjeta from '../../components/Tarjeta'
 import { actualizarCliente, obtenerClientePorLogin } from '../../db/clientes'
 import type { Cliente } from '../../db/tipos'
 import { useSesion } from '../../lib/sesion'
-import { colors, radios, shared } from '../../theme'
+import { colors, radios } from '../../theme'
 
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const FECHA_VALIDA = /^\d{4}-\d{2}-\d{2}$/
@@ -90,7 +92,7 @@ export default function Perfil() {
       <Encabezado titulo="Mi perfil" bajada="Consulta y actualiza tus datos" />
 
       <ScrollView contentContainerStyle={styles.contenido} keyboardShouldPersistTaps="handled">
-        <View style={styles.tarjeta}>
+        <Tarjeta style={styles.tarjeta}>
           <Campo
             etiqueta="Nombre completo"
             value={nombre}
@@ -114,21 +116,11 @@ export default function Perfil() {
             keyboardType="email-address"
           />
 
-          {error !== '' && (
-            <View style={shared.alerta}>
-              <View style={shared.alertaPunto} />
-              <Text style={shared.alertaTexto}>{error}</Text>
-            </View>
-          )}
-
-          {aviso !== '' && (
-            <View style={styles.exito}>
-              <Text style={styles.exitoTexto}>{aviso}</Text>
-            </View>
-          )}
+          <Aviso texto={error} />
+          <Aviso texto={aviso} tono="exito" />
 
           <Boton titulo={guardando ? 'Guardando…' : 'Guardar cambios'} onPress={guardar} />
-        </View>
+        </Tarjeta>
       </ScrollView>
     </View>
   )
@@ -144,21 +136,6 @@ const styles = StyleSheet.create({
   },
   tarjeta: {
     gap: 18,
-    backgroundColor: colors.superficie,
-    borderWidth: 1,
-    borderColor: colors.borde,
-    borderRadius: radios.lg,
     padding: 20
   },
-  exito: {
-    backgroundColor: '#ecfdf5',
-    borderRadius: radios.md,
-    paddingVertical: 10,
-    paddingHorizontal: 14
-  },
-  exitoTexto: {
-    fontWeight: '500',
-    fontSize: 14,
-    color: '#047857'
-  }
 })

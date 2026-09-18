@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Cargando from '../../components/Cargando'
 import Encabezado from '../../components/Encabezado'
+import Tarjeta from '../../components/Tarjeta'
 import { obtenerClientePorLogin } from '../../db/clientes'
 import { comprasDeCliente } from '../../db/compras'
 import type { Cliente, CompraResumen } from '../../db/tipos'
@@ -57,13 +58,13 @@ export default function InicioCliente() {
         </Pressable>
 
         {compras.length > 0 && (
-          <View style={styles.seccion}>
+          <Tarjeta style={styles.seccion}>
             <Text style={styles.seccionTitulo}>Última compra</Text>
             <View style={styles.fila}>
               <Text style={styles.filaNombre}>Compra #{compras[0].id}</Text>
               <Text style={styles.filaValor}>{pesos(compras[0].total)}</Text>
             </View>
-          </View>
+          </Tarjeta>
         )}
       </ScrollView>
     </View>
@@ -128,12 +129,7 @@ const styles = StyleSheet.create({
     color: '#cbd5e1'
   },
   seccion: {
-    gap: 10,
-    backgroundColor: colors.superficie,
-    borderWidth: 1,
-    borderColor: colors.borde,
-    borderRadius: radios.lg,
-    padding: 16
+    gap: 10
   },
   seccionTitulo: {
     fontWeight: '600',
