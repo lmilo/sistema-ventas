@@ -1,35 +1,19 @@
 import { Redirect } from 'expo-router'
 import type { ReactNode } from 'react'
-import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import Cargando from '../components/Cargando'
 import type { RolUsuario } from '../db/tipos'
 import { useSesion } from './sesion'
-import { colors } from '../theme'
 
-/** Corta el render antes de que una pantalla ajena al rol llegue a montarse. */
+/** Corta el render antes de que una pantalla ajena al rol llegue a montarse.
+ *  HU-03: el cliente no alcanza pantallas de administrador ni escribiendo la ruta. */
 export function Guard({ rol, children }: { rol: RolUsuario; children: ReactNode }) {
-  const { usuario, cargando } = useSesion()
+  const { cuenta, cargando } = useSesion()
 
-  if (cargando) {
-    return (
-      <View style={styles.centro}>
-        <ActivityIndicator color={colors.acento} />
-      </View>
-    )
-  }
-
-  if (!usuario) return <Redirect href="/login" />
-  if (usuario.rol !== rol) {
-    return <Redirect href={usuario.rol === 'administrador' ? '/dashboard' : '/inicio'} />
+  if (cargando) return <Cargando />
+  if (!cuenta) return <Redirect href="/login" />
+  if (cuenta.rol !== rol) {
+    return <Redirect href={cuenta.rol === 'administrador' ? '/(admin)/inicio' : '/(cliente)/inicio'} />
   }
 
   return <>{children}</>
 }
-
-const styles = StyleSheet.create({
-  centro: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.fondo
-  }
-})
