@@ -3,7 +3,7 @@ import type { Cliente, ClienteResumen } from './tipos'
 
 type ClienteRow = {
   id: number
-  id_usuario: number
+  id_login: number
   nombre_completo: string
   fecha_nacimiento: string
   correo: string
@@ -17,7 +17,7 @@ type ClienteResumenRow = ClienteRow & {
 
 const mapCliente = (row: ClienteRow): Cliente => ({
   id: row.id,
-  idUsuario: row.id_usuario,
+  idLogin: row.id_login,
   nombreCompleto: row.nombre_completo,
   fechaNacimiento: row.fecha_nacimiento,
   correo: row.correo
@@ -34,15 +34,15 @@ export async function listarClientes(db: SQLiteDatabase): Promise<ClienteResumen
   const clientes = await db.getAllAsync<ClienteResumenRow>(`
     SELECT
       c.id,
-      c.id_usuario,
+      c.id_login,
       c.nombre_completo,
       c.fecha_nacimiento,
       c.correo,
       COUNT(v.id) AS total_compras,
       COALESCE(SUM(v.total), 0) AS total_gastado,
       MAX(v.fecha_venta) AS ultima_compra
-    FROM clientes c
-    LEFT JOIN ventas_encabezado v ON v.id_cliente = c.id
+    FROM cliente c
+    LEFT JOIN encabezado v ON v.id_cliente = c.id
     GROUP BY c.id
     ORDER BY c.nombre_completo COLLATE NOCASE ASC;
   `)
@@ -57,15 +57,15 @@ export async function buscarClientes(db: SQLiteDatabase, termino: string): Promi
     `
       SELECT
         c.id,
-        c.id_usuario,
+        c.id_login,
         c.nombre_completo,
         c.fecha_nacimiento,
         c.correo,
         COUNT(v.id) AS total_compras,
         COALESCE(SUM(v.total), 0) AS total_gastado,
         MAX(v.fecha_venta) AS ultima_compra
-      FROM clientes c
-      LEFT JOIN ventas_encabezado v ON v.id_cliente = c.id
+      FROM cliente c
+      LEFT JOIN encabezado v ON v.id_cliente = c.id
       WHERE c.nombre_completo LIKE ? COLLATE NOCASE
         OR c.correo LIKE ? COLLATE NOCASE
       GROUP BY c.id
@@ -84,8 +84,8 @@ export async function obtenerClientePorId(
 ): Promise<Cliente | null> {
   const cliente = await db.getFirstAsync<ClienteRow>(
     `
-      SELECT id, id_usuario, nombre_completo, fecha_nacimiento, correo
-      FROM clientes
+      SELECT id, id_login, nombre_completo, fecha_nacimiento, correo
+      FROM cliente
       WHERE id = ?;
     `,
     idCliente

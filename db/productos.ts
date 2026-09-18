@@ -63,7 +63,7 @@ export async function listarProductos(
   const productos = await db.getAllAsync<ProductoRow>(
     `
       SELECT id, nombre, descripcion, stock, precio_unitario, precio_compra, imagen_uri, activo
-      FROM productos
+      FROM producto
       ${where}
       ORDER BY activo DESC, nombre COLLATE NOCASE ASC;
     `,
@@ -80,7 +80,7 @@ export async function obtenerProductoPorId(
   const producto = await db.getFirstAsync<ProductoRow>(
     `
       SELECT id, nombre, descripcion, stock, precio_unitario, precio_compra, imagen_uri, activo
-      FROM productos
+      FROM producto
       WHERE id = ?;
     `,
     idProducto
@@ -95,7 +95,7 @@ export async function crearProducto(db: SQLiteDatabase, producto: ProductoInput)
 
   const resultado = await db.runAsync(
     `
-      INSERT INTO productos (
+      INSERT INTO producto (
         nombre,
         descripcion,
         stock,
@@ -126,7 +126,7 @@ export async function actualizarProducto(
 
   await db.runAsync(
     `
-      UPDATE productos
+      UPDATE producto
       SET
         nombre = ?,
         descripcion = ?,
@@ -157,7 +157,7 @@ export async function aumentarStock(
 
   await db.runAsync(
     `
-      UPDATE productos
+      UPDATE producto
       SET stock = stock + ?
       WHERE id = ?;
     `,
@@ -173,7 +173,7 @@ export async function cambiarEstadoProducto(
 ): Promise<void> {
   await db.runAsync(
     `
-      UPDATE productos
+      UPDATE producto
       SET activo = ?
       WHERE id = ?;
     `,

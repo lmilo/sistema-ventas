@@ -25,7 +25,7 @@ async function crearHashDemo(password: string): Promise<{ hash: string; salt: st
 
 export async function sembrarDatosDemo(db: SQLiteDatabase): Promise<void> {
   const totalUsuarios = await db.getFirstAsync<{ total: number }>(
-    'SELECT COUNT(*) AS total FROM usuarios;'
+    'SELECT COUNT(*) AS total FROM login;'
   )
 
   if ((totalUsuarios?.total ?? 0) > 0) {
@@ -37,21 +37,21 @@ export async function sembrarDatosDemo(db: SQLiteDatabase): Promise<void> {
 
   await db.withExclusiveTransactionAsync(async txn => {
     const admin = await txn.runAsync(
-      `INSERT INTO usuarios (correo, password_hash, salt, rol) VALUES (?, ?, ?, 'administrador');`,
+      `INSERT INTO login (correo, password_hash, salt, rol, estado) VALUES (?, ?, ?, 'administrador', 'activo');`,
       ADMIN_EMAIL,
       adminHash.hash,
       adminHash.salt
     )
 
     const cliente = await txn.runAsync(
-      `INSERT INTO usuarios (correo, password_hash, salt, rol) VALUES (?, ?, ?, 'cliente');`,
+      `INSERT INTO login (correo, password_hash, salt, rol, estado) VALUES (?, ?, ?, 'cliente', 'activo');`,
       CLIENTE_EMAIL,
       clienteHash.hash,
       clienteHash.salt
     )
 
     await txn.runAsync(
-      `INSERT INTO clientes (id_usuario, nombre_completo, fecha_nacimiento, correo)
+      `INSERT INTO cliente (id_login, nombre_completo, fecha_nacimiento, correo)
        VALUES (?, ?, ?, ?);`,
       cliente.lastInsertRowId,
       'Ana Gómez',
@@ -60,7 +60,7 @@ export async function sembrarDatosDemo(db: SQLiteDatabase): Promise<void> {
     )
 
     await txn.runAsync(
-      `INSERT INTO productos (nombre, descripcion, stock, precio_unitario, precio_compra, imagen_uri, activo)
+      `INSERT INTO producto (nombre, descripcion, stock, precio_unitario, precio_compra, imagen_uri, activo)
        VALUES (?, ?, ?, ?, ?, ?, 1), (?, ?, ?, ?, ?, ?, 1), (?, ?, ?, ?, ?, ?, 1);`,
       'Teclado mecánico',
       'Teclado gaming con iluminación RGB.',
@@ -83,14 +83,14 @@ export async function sembrarDatosDemo(db: SQLiteDatabase): Promise<void> {
     )
 
     const encabezado = await txn.runAsync(
-      `INSERT INTO ventas_encabezado (id_cliente, fecha_venta, total) VALUES (?, ?, ?);`,
+      `INSERT INTO encabezado (id_cliente, fecha_venta, total) VALUES (?, ?, ?);`,
       1,
       '2026-09-15 10:30:00',
       265000
     )
 
     await txn.runAsync(
-      `INSERT INTO ventas_detalle (id_encabezado, id_producto, cantidad, precio_unitario, costo_unitario, subtotal)
+      `INSERT INTO detalle (id_encabezado, id_producto, cantidad, precio_unitario, costo_unitario, subtotal)
        VALUES (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?);`,
       encabezado.lastInsertRowId,
       1,
@@ -107,12 +107,12 @@ export async function sembrarDatosDemo(db: SQLiteDatabase): Promise<void> {
     )
 
     await txn.runAsync(
-      `UPDATE productos SET stock = stock - 1 WHERE id = ?;`,
+      `UPDATE producto SET stock = stock - 1 WHERE id = ?;`,
       1
     )
 
     await txn.runAsync(
-      `UPDATE productos SET stock = stock - 1 WHERE id = ?;`,
+      `UPDATE producto SET stock = stock - 1 WHERE id = ?;`,
       2
     )
 
