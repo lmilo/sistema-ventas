@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native'
-import { colors, radios } from '../theme'
+import { colors, espacio, fuentes, radios, tipo } from '../theme'
 
 type Props = TextInputProps & {
   etiqueta: string
@@ -11,10 +11,10 @@ export default function Campo({ etiqueta, style, ...props }: Props) {
 
   return (
     <View style={styles.contenedor}>
-      <Text style={styles.etiqueta}>{etiqueta}</Text>
+      <Text style={[tipo.etiqueta, enfocado && styles.etiquetaActiva]}>{etiqueta}</Text>
       <TextInput
         style={[styles.input, enfocado && styles.inputEnfocado, style]}
-        placeholderTextColor={colors.tintaTenue}
+        placeholderTextColor={colors.piedraTenue}
         autoCapitalize="none"
         onFocus={() => setEnfocado(true)}
         onBlur={() => setEnfocado(false)}
@@ -26,27 +26,24 @@ export default function Campo({ etiqueta, style, ...props }: Props) {
 
 const styles = StyleSheet.create({
   contenedor: {
-    gap: 8
+    gap: espacio.sm
   },
-  etiqueta: {
-    fontWeight: '500',
-    fontSize: 13,
-    letterSpacing: 0.1,
-    color: colors.tinta
+  etiquetaActiva: {
+    color: colors.terracota
   },
   input: {
     borderWidth: 1,
     borderColor: colors.borde,
     borderRadius: radios.md,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    fontWeight: '400',
+    paddingVertical: 13,
+    paddingHorizontal: espacio.lg,
+    fontFamily: fuentes.texto,
     fontSize: 15,
     color: colors.tinta,
     backgroundColor: colors.superficie
   },
   inputEnfocado: {
-    borderColor: colors.bordeFoco,
-    backgroundColor: colors.acentoSuave
+    borderColor: colors.terracota,
+    backgroundColor: colors.terracotaSuave
   }
 })

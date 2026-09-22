@@ -13,7 +13,7 @@ import { listarProductos } from '../../db/productos'
 import type { ItemCompra, Producto } from '../../db/tipos'
 import { pesos } from '../../lib/moneda'
 import { useSesion } from '../../lib/sesion'
-import { colors, radios } from '../../theme'
+import { colors, fuentes, radios } from '../../theme'
 
 export default function Comprar() {
   const db = useSQLiteContext()
@@ -139,7 +139,7 @@ export default function Comprar() {
         value={busqueda}
         onChangeText={setBusqueda}
         placeholder="Buscar producto"
-        placeholderTextColor={colors.tintaTenue}
+        placeholderTextColor={colors.piedraTenue}
         autoCapitalize="none"
       />
 
@@ -226,6 +226,7 @@ const styles = StyleSheet.create({
     borderRadius: radios.md,
     paddingVertical: 12,
     paddingHorizontal: 14,
+    fontFamily: fuentes.texto,
     fontSize: 15,
     color: colors.tinta,
     backgroundColor: colors.superficie
@@ -249,18 +250,19 @@ const styles = StyleSheet.create({
     gap: 4
   },
   nombre: {
-    fontWeight: '600',
+    fontFamily: fuentes.textoFuerte,
     fontSize: 16,
     color: colors.tinta
   },
   descripcion: {
+    fontFamily: fuentes.texto,
     fontSize: 13,
     color: colors.tintaSuave
   },
   precio: {
-    fontWeight: '500',
+    fontFamily: fuentes.textoMedio,
     fontSize: 13,
-    color: colors.acento
+    color: colors.terracota
   },
   contador: {
     flexDirection: 'row',
@@ -273,20 +275,20 @@ const styles = StyleSheet.create({
     borderRadius: radios.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.acentoSuave
+    backgroundColor: colors.terracotaSuave
   },
   pasoInactivo: {
     opacity: 0.4
   },
   pasoTexto: {
-    fontWeight: '700',
+    fontFamily: fuentes.textoFuerte,
     fontSize: 18,
-    color: colors.acento
+    color: colors.terracota
   },
   cantidad: {
     minWidth: 22,
     textAlign: 'center',
-    fontWeight: '600',
+    fontFamily: fuentes.textoFuerte,
     fontSize: 16,
     color: colors.tinta
   },
@@ -303,11 +305,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   totalEtiqueta: {
+    fontFamily: fuentes.texto,
     fontSize: 13,
     color: colors.tintaSuave
   },
   totalValor: {
-    fontWeight: '700',
+    fontFamily: fuentes.textoFuerte,
     fontSize: 22,
     letterSpacing: -0.5,
     color: colors.tinta

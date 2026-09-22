@@ -10,7 +10,7 @@ import Tarjeta from '../../components/Tarjeta'
 import { aprobarCuenta, listarSolicitudes } from '../../db/login'
 import type { RolUsuario, Solicitud } from '../../db/tipos'
 import { fechaLegible } from '../../lib/moneda'
-import { colors, radios } from '../../theme'
+import { colors, fuentes, radios } from '../../theme'
 
 /** HU-02: el administrador ve las solicitudes pendientes, asigna rol y activa. */
 export default function Solicitudes() {
@@ -117,11 +117,12 @@ const styles = StyleSheet.create({
     gap: 3
   },
   correo: {
-    fontWeight: '600',
+    fontFamily: fuentes.textoFuerte,
     fontSize: 16,
     color: colors.tinta
   },
   fecha: {
+    fontFamily: fuentes.texto,
     fontSize: 13,
     color: colors.tintaSuave
   },
@@ -136,18 +137,18 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   botonCliente: {
-    backgroundColor: colors.acentoSuave
+    backgroundColor: colors.terracotaSuave
   },
   botonClienteTexto: {
-    fontWeight: '600',
+    fontFamily: fuentes.textoFuerte,
     fontSize: 13,
-    color: colors.acento
+    color: colors.terracota
   },
   botonAdmin: {
     backgroundColor: colors.tinta
   },
   botonAdminTexto: {
-    fontWeight: '600',
+    fontFamily: fuentes.textoFuerte,
     fontSize: 13,
     color: '#ffffff'
   }

@@ -4,7 +4,7 @@ import { colors } from '../theme'
 export default function Cargando() {
   return (
     <View style={styles.centro}>
-      <ActivityIndicator color={colors.acento} />
+      <ActivityIndicator color={colors.terracota} />
     </View>
   )
 }

@@ -1,7 +1,14 @@
 import * as Crypto from 'expo-crypto'
-import { scryptAsync } from '@noble/hashes/scrypt.js'
+import { scrypt } from '@noble/hashes/scrypt.js'
 
-const PARAMETROS = { N: 2 ** 14, r: 8, p: 1, dkLen: 32 }
+/**
+ * Hermes no tiene JIT: scrypt en JavaScript puro cuesta aqui ordenes de
+ * magnitud mas que en Node. N = 2^12 es el punto donde sigue siendo un KDF
+ * serio y el login responde. Ademas se usa la version SINCRONA: la asincrona
+ * de noble cede el control con ticks que el planificador de React Native
+ * posterga casi indefinidamente.
+ */
+export const PARAMETROS = { N: 2 ** 12, r: 8, p: 1, dkLen: 32 }
 const MAX_INTENTOS = 5
 const MINUTOS_BLOQUEO = 5
 
@@ -23,8 +30,7 @@ export async function generarSalt() {
 }
 
 export async function derivarHash(password: string, saltHex: string) {
-  const derivada = await scryptAsync(password, desdeHex(saltHex), PARAMETROS)
-  return aHex(derivada)
+  return aHex(scrypt(password, desdeHex(saltHex), PARAMETROS))
 }
 
 /** Comparacion en tiempo constante: no revela cuantos caracteres coincidieron. */

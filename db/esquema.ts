@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite'
 import { sembrarDatosDemo } from './seed'
 
-export const DATABASE_NAME = 'sistema-ventas.db'
+export const DATABASE_NAME = 'sistema-ventas-demo.db'
 export const DATABASE_VERSION = 2
 
 type UserVersionRow = {

@@ -1,21 +1,23 @@
 import { StyleSheet, Text, View } from 'react-native'
-import { colors, radios } from '../theme'
+import { colors, fuentes, radios } from '../theme'
 
 type Props = {
   tono?: 'claro' | 'oscuro'
+  compacto?: boolean
 }
 
-export default function Logo({ tono = 'claro' }: Props) {
+/** Marca: un cuadro terracota con la inicial y el nombre en la serif del sistema. */
+export default function Logo({ tono = 'oscuro', compacto = false }: Props) {
   const esClaro = tono === 'claro'
 
   return (
     <View style={styles.fila}>
-      <View style={[styles.marca, esClaro ? styles.marcaClara : styles.marcaOscura]}>
-        <Text style={[styles.glifo, esClaro && styles.glifoClaro]}>◆</Text>
+      <View style={[styles.sello, esClaro && styles.selloClaro]}>
+        <Text style={[styles.inicial, esClaro && styles.inicialClara]}>V</Text>
       </View>
-      <Text style={[styles.nombre, esClaro ? styles.nombreClaro : styles.nombreOscuro]}>
-        LoginApp
-      </Text>
+      {!compacto && (
+        <Text style={[styles.nombre, esClaro && styles.nombreClaro]}>Ventas</Text>
+      )}
     </View>
   )
 }
@@ -26,37 +28,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10
   },
-  marca: {
-    width: 34,
-    height: 34,
+  sello: {
+    width: 30,
+    height: 30,
     borderRadius: radios.sm,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    backgroundColor: colors.terracota
   },
-  marcaClara: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)'
+  selloClaro: {
+    backgroundColor: '#fff7ed'
   },
-  marcaOscura: {
-    backgroundColor: colors.acentoSuave
+  inicial: {
+    fontFamily: fuentes.displayFuerte,
+    fontSize: 16,
+    lineHeight: 20,
+    color: '#fff7ed'
   },
-  glifo: {
-    fontSize: 13,
-    color: colors.acento
-  },
-  glifoClaro: {
-    color: '#a5b4fc'
+  inicialClara: {
+    color: colors.terracota
   },
   nombre: {
-    fontWeight: '600',
-    fontSize: 16,
-    letterSpacing: -0.2
+    fontFamily: fuentes.display,
+    fontSize: 18,
+    letterSpacing: -0.2,
+    color: colors.tinta
   },
   nombreClaro: {
-    color: '#ffffff'
-  },
-  nombreOscuro: {
-    color: colors.tinta
+    color: '#fff7ed'
   }
 })
