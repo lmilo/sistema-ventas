@@ -5,37 +5,37 @@ import type { Cuenta } from '../db/tipos'
 const CLAVE = 'sesion'
 
 type Contexto = {
-  usuario: Cuenta | null
+  cuenta: Cuenta | null
   cargando: boolean
-  iniciar: (usuario: Cuenta) => Promise<void>
+  iniciar: (cuenta: Cuenta) => Promise<void>
   cerrar: () => Promise<void>
 }
 
 const SesionContext = createContext<Contexto | null>(null)
 
 export function SesionProvider({ children }: { children: ReactNode }) {
-  const [usuario, setUsuario] = useState<Cuenta | null>(null)
+  const [cuenta, setCuenta] = useState<Cuenta | null>(null)
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
     SecureStore.getItemAsync(CLAVE)
-      .then(valor => setUsuario(valor ? (JSON.parse(valor) as Cuenta) : null))
-      .catch(() => setUsuario(null))
+      .then(valor => setCuenta(valor ? (JSON.parse(valor) as Cuenta) : null))
+      .catch(() => setCuenta(null))
       .finally(() => setCargando(false))
   }, [])
 
-  const iniciar = async (nuevo: Cuenta) => {
-    await SecureStore.setItemAsync(CLAVE, JSON.stringify(nuevo))
-    setUsuario(nuevo)
+  const iniciar = async (nueva: Cuenta) => {
+    await SecureStore.setItemAsync(CLAVE, JSON.stringify(nueva))
+    setCuenta(nueva)
   }
 
   const cerrar = async () => {
     await SecureStore.deleteItemAsync(CLAVE)
-    setUsuario(null)
+    setCuenta(null)
   }
 
   return (
-    <SesionContext.Provider value={{ usuario, cargando, iniciar, cerrar }}>
+    <SesionContext.Provider value={{ cuenta, cargando, iniciar, cerrar }}>
       {children}
     </SesionContext.Provider>
   )

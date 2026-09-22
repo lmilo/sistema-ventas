@@ -93,3 +93,54 @@ export async function obtenerClientePorId(
 
   return cliente ? mapCliente(cliente) : null
 }
+
+/** Agregado por Camilo para C3 (perfil del cliente). Nataly puede revisarlo. */
+
+export async function obtenerClientePorLogin(
+  db: SQLiteDatabase,
+  idLogin: number
+): Promise<Cliente | null> {
+  const cliente = await db.getFirstAsync<ClienteRow>(
+    `
+      SELECT id, id_login, nombre_completo, fecha_nacimiento, correo
+      FROM cliente
+      WHERE id_login = ?;
+    `,
+    idLogin
+  )
+
+  return cliente ? mapCliente(cliente) : null
+}
+
+/** HU-03: se ejecuta en el primer ingreso del cliente, no en el registro. */
+export async function crearCliente(
+  db: SQLiteDatabase,
+  idLogin: number,
+  datos: { nombreCompleto: string; fechaNacimiento: string; correo: string }
+): Promise<number> {
+  const resultado = await db.runAsync(
+    `
+      INSERT INTO cliente (id_login, nombre_completo, fecha_nacimiento, correo)
+      VALUES (?, ?, ?, ?);
+    `,
+    [idLogin, datos.nombreCompleto.trim(), datos.fechaNacimiento, datos.correo.trim().toLowerCase()]
+  )
+
+  return resultado.lastInsertRowId
+}
+
+/** HU-04: el cliente edita sus propios datos. */
+export async function actualizarCliente(
+  db: SQLiteDatabase,
+  idCliente: number,
+  datos: { nombreCompleto: string; fechaNacimiento: string; correo: string }
+): Promise<void> {
+  await db.runAsync(
+    `
+      UPDATE cliente
+      SET nombre_completo = ?, fecha_nacimiento = ?, correo = ?
+      WHERE id = ?;
+    `,
+    [datos.nombreCompleto.trim(), datos.fechaNacimiento, datos.correo.trim().toLowerCase(), idCliente]
+  )
+}

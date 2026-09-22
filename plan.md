@@ -491,3 +491,18 @@ Ordenado por peso en la rúbrica, no por gusto.
 - Montó además `expo-router` y las dependencias del plan.
 
 Pendiente de ajustar tras el enunciado: nombres de tabla, columna `estado` y rol nulo hasta aprobación.
+
+### 2026-09-22 — Camilo, ramas `feat/camilo-c1-c8`
+
+- **C1.** Registro que crea la cuenta en estado pendiente y login que valida estado y rol. Hash scrypt con salt por usuario, bloqueo tras 5 intentos, sesión en SecureStore y guard que corta el render.
+- **C2.** Pantalla de solicitudes: el administrador asigna rol y activa en un solo paso.
+- **C3.** Perfil obligatorio en el primer ingreso, controlado desde el enrutador, y edición posterior.
+- **C4.** Pantalla de compra con control de cantidades contra stock y bloqueo cuando no hay productos.
+- **C5.** `crearCompra` transaccional: valida dentro de la transacción y lee los precios de la base, no del carrito.
+- **C6.** Compras del administrador y del cliente, con detalle desplegable.
+- **C7.** Menú en todas las pantallas de ambos roles, más los componentes `Aviso`, `EstadoVacio`, `Tarjeta` y `Cargando`.
+- **C8.** Factura en PDF y resumen financiero con agregaciones en SQL.
+
+Se implementaron además `db/login.ts`, las lecturas de `db/compras.ts`, `db/reportes.ts` y tres funciones de `db/clientes.ts`, que son de Nataly, para no quedar bloqueado. Quedan marcadas con comentario para su revisión.
+
+Eliminados por quedar sin referencias: `App.tsx`, `index.ts`, `types.ts`, `screens/` y `app/_layout.web.tsx`.

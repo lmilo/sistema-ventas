@@ -43,27 +43,6 @@ export const shared = StyleSheet.create({
     lineHeight: 22,
     color: colors.tintaSuave
   },
-  alerta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: colors.errorFondo,
-    borderRadius: radios.md,
-    paddingVertical: 12,
-    paddingHorizontal: 14
-  },
-  alertaPunto: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.error
-  },
-  alertaTexto: {
-    flex: 1,
-    fontWeight: '500',
-    fontSize: 14,
-    color: colors.error
-  },
   pie: {
     flexDirection: 'row',
     justifyContent: 'center',

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { ScrollView, StyleSheet, View } from 'react-native'
+import Logo from './Logo'
 import { colors, radios } from '../theme'
 
 type Props = {
@@ -13,7 +14,12 @@ export default function LayoutAuth({ children }: Props) {
       contentContainerStyle={styles.contenido}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.tarjeta}>{children}</View>
+      <View style={styles.tarjeta}>
+        <View style={styles.marca}>
+          <Logo tono="oscuro" />
+        </View>
+        {children}
+      </View>
     </ScrollView>
   )
 }
@@ -29,6 +35,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 48
+  },
+  marca: {
+    alignItems: 'center',
+    marginBottom: 24
   },
   tarjeta: {
     width: '100%',
