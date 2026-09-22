@@ -5,7 +5,6 @@ import {
   Modal,
   Pressable,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -13,6 +12,7 @@ import {
   TextInput,
   View
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useSQLiteContext } from 'expo-sqlite'
 import {
   actualizarProducto,
@@ -22,7 +22,7 @@ import {
   listarProductos
 } from '../../db/productos'
 import type { Producto, ProductoInput } from '../../db/tipos'
-import { colors, radios } from '../../theme'
+import { colors, fuentes, radios } from '../../theme'
 
 type FormProducto = {
   nombre: string
@@ -202,7 +202,7 @@ export default function ProductosAdminScreen() {
           value={busqueda}
           onChangeText={setBusqueda}
           placeholder="Buscar producto"
-          placeholderTextColor={colors.tintaTenue}
+          placeholderTextColor={colors.piedraTenue}
           style={styles.buscador}
         />
 
@@ -225,7 +225,7 @@ export default function ProductosAdminScreen() {
 
         {cargando ? (
           <View style={styles.estado}>
-            <ActivityIndicator color={colors.acento} />
+            <ActivityIndicator color={colors.terracota} />
             <Text style={styles.estadoTexto}>Cargando productos...</Text>
           </View>
         ) : (
@@ -437,7 +437,7 @@ function CampoFormulario({
       <TextInput
         value={valor}
         onChangeText={onChangeText}
-        placeholderTextColor={colors.tintaTenue}
+        placeholderTextColor={colors.piedraTenue}
         style={[styles.campoInput, props.multiline && styles.campoArea]}
         {...props}
       />
@@ -535,15 +535,15 @@ const styles = StyleSheet.create({
     flex: 1
   },
   sobretitulo: {
-    color: colors.acento,
+    color: colors.terracota,
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: fuentes.textoFuerte,
     textTransform: 'uppercase'
   },
   titulo: {
     color: colors.tinta,
     fontSize: 30,
-    fontWeight: '700'
+    fontFamily: fuentes.textoFuerte
   },
   buscador: {
     borderWidth: 1,
@@ -554,6 +554,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: colors.superficie,
     color: colors.tinta,
+    fontFamily: fuentes.texto,
     fontSize: 15
   },
   filtros: {
@@ -565,7 +566,7 @@ const styles = StyleSheet.create({
   filtroTexto: {
     color: colors.tintaSuave,
     fontSize: 14,
-    fontWeight: '600'
+    fontFamily: fuentes.textoFuerte
   },
   indicadores: {
     flexDirection: 'row',
@@ -583,23 +584,23 @@ const styles = StyleSheet.create({
   indicadorValor: {
     color: colors.tinta,
     fontSize: 16,
-    fontWeight: '700'
+    fontFamily: fuentes.textoFuerte
   },
   indicadorTexto: {
     marginTop: 3,
     color: colors.tintaSuave,
     fontSize: 12,
-    fontWeight: '500'
+    fontFamily: fuentes.textoMedio
   },
   alerta: {
     borderRadius: radios.md,
     padding: 12,
     marginBottom: 12,
-    backgroundColor: colors.errorFondo
+    backgroundColor: colors.ladrilloSuave
   },
   alertaTexto: {
-    color: colors.error,
-    fontWeight: '600'
+    color: colors.ladrillo,
+    fontFamily: fuentes.textoFuerte
   },
   lista: {
     gap: 12,
@@ -632,10 +633,11 @@ const styles = StyleSheet.create({
   productoNombre: {
     color: colors.tinta,
     fontSize: 17,
-    fontWeight: '700'
+    fontFamily: fuentes.textoFuerte
   },
   productoDescripcion: {
     color: colors.tintaSuave,
+    fontFamily: fuentes.texto,
     fontSize: 14,
     lineHeight: 19
   },
@@ -646,15 +648,15 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start'
   },
   activoPill: {
-    backgroundColor: colors.acentoSuave
+    backgroundColor: colors.terracotaSuave
   },
   inactivoPill: {
     backgroundColor: colors.borde
   },
   estadoPillTexto: {
-    color: colors.acento,
+    color: colors.terracota,
     fontSize: 12,
-    fontWeight: '700'
+    fontFamily: fuentes.textoFuerte
   },
   inactivoPillTexto: {
     color: colors.tintaSuave
@@ -671,17 +673,17 @@ const styles = StyleSheet.create({
     gap: 2
   },
   datoEtiqueta: {
-    color: colors.tintaTenue,
+    color: colors.piedraTenue,
     fontSize: 12,
-    fontWeight: '600'
+    fontFamily: fuentes.textoFuerte
   },
   datoValor: {
     color: colors.tinta,
     fontSize: 14,
-    fontWeight: '700'
+    fontFamily: fuentes.textoFuerte
   },
   datoDestacado: {
-    color: colors.error
+    color: colors.ladrillo
   },
   acciones: {
     flexDirection: 'row',
@@ -699,11 +701,12 @@ const styles = StyleSheet.create({
   estadoTitulo: {
     color: colors.tinta,
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: fuentes.textoFuerte,
     textAlign: 'center'
   },
   estadoTexto: {
     color: colors.tintaSuave,
+    fontFamily: fuentes.texto,
     fontSize: 14,
     lineHeight: 20,
     textAlign: 'center'
@@ -727,7 +730,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.tinta,
     fontSize: 24,
-    fontWeight: '700'
+    fontFamily: fuentes.textoFuerte
   },
   campo: {
     gap: 7
@@ -735,7 +738,7 @@ const styles = StyleSheet.create({
   campoEtiqueta: {
     color: colors.tinta,
     fontSize: 13,
-    fontWeight: '600'
+    fontFamily: fuentes.textoFuerte
   },
   campoInput: {
     borderWidth: 1,
@@ -745,6 +748,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     backgroundColor: colors.superficie,
     color: colors.tinta,
+    fontFamily: fuentes.texto,
     fontSize: 15
   },
   campoArea: {
@@ -775,7 +779,7 @@ const styles = StyleSheet.create({
   },
   botonTexto: {
     fontSize: 14,
-    fontWeight: '700'
+    fontFamily: fuentes.textoFuerte
   },
   botonTextoPrimario: {
     color: '#ffffff'
@@ -798,7 +802,7 @@ const styles = StyleSheet.create({
   stockProducto: {
     color: colors.tintaSuave,
     fontSize: 15,
-    fontWeight: '600'
+    fontFamily: fuentes.textoFuerte
   },
   stockAcciones: {
     flexDirection: 'row',

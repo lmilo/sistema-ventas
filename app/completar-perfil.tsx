@@ -8,7 +8,7 @@ import Campo from '../components/Campo'
 import LayoutAuth from '../components/LayoutAuth'
 import { crearCliente } from '../db/clientes'
 import { useSesion } from '../lib/sesion'
-import { shared } from '../theme'
+import { shared, tipo } from '../theme'
 
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const FECHA_VALIDA = /^\d{4}-\d{2}-\d{2}$/
@@ -76,8 +76,8 @@ export default function CompletarPerfil() {
     <LayoutAuth>
       <View style={shared.formulario}>
         <View style={shared.encabezado}>
-          <Text style={shared.titulo}>Completa tu perfil</Text>
-          <Text style={shared.subtitulo}>
+          <Text style={tipo.titular}>Completa tu perfil</Text>
+          <Text style={tipo.cuerpo}>
             Necesitamos tus datos personales antes de que puedas comprar.
           </Text>
         </View>

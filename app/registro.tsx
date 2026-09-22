@@ -7,7 +7,7 @@ import Aviso from '../components/Aviso'
 import Campo from '../components/Campo'
 import LayoutAuth from '../components/LayoutAuth'
 import { correoRegistrado, crearCuentaPendiente } from '../db/login'
-import { shared } from '../theme'
+import { shared, tipo } from '../theme'
 
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -77,8 +77,8 @@ export default function Registro() {
       <LayoutAuth>
         <View style={shared.formulario}>
           <View style={shared.encabezado}>
-            <Text style={shared.titulo}>Solicitud enviada</Text>
-            <Text style={shared.subtitulo}>
+            <Text style={tipo.titular}>Solicitud enviada</Text>
+            <Text style={tipo.cuerpo}>
               Tu cuenta quedó registrada y está pendiente de aprobación. Un administrador debe
               activarla y asignarte un rol antes de que puedas iniciar sesión.
             </Text>
@@ -94,8 +94,8 @@ export default function Registro() {
     <LayoutAuth>
       <View style={shared.formulario}>
         <View style={shared.encabezado}>
-          <Text style={shared.titulo}>Crear cuenta</Text>
-          <Text style={shared.subtitulo}>
+          <Text style={tipo.titular}>Crear cuenta</Text>
+          <Text style={tipo.cuerpo}>
             Un administrador revisará tu solicitud antes de darte acceso.
           </Text>
         </View>

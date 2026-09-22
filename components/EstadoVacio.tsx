@@ -1,11 +1,21 @@
+import Feather from '@expo/vector-icons/Feather'
 import { StyleSheet, Text, View } from 'react-native'
-import { colors } from '../theme'
+import { colors, espacio, radios, tipo } from '../theme'
 
-export default function EstadoVacio({ titulo, texto }: { titulo: string; texto: string }) {
+type Props = {
+  titulo: string
+  texto: string
+  icono?: keyof typeof Feather.glyphMap
+}
+
+export default function EstadoVacio({ titulo, texto, icono = 'inbox' }: Props) {
   return (
     <View style={styles.centro}>
-      <Text style={styles.titulo}>{titulo}</Text>
-      <Text style={styles.texto}>{texto}</Text>
+      <View style={styles.marco}>
+        <Feather name={icono} size={22} color={colors.terracota} />
+      </View>
+      <Text style={[tipo.subtitulo, styles.titulo]}>{titulo}</Text>
+      <Text style={[tipo.cuerpo, styles.texto]}>{texto}</Text>
     </View>
   )
 }
@@ -13,17 +23,23 @@ export default function EstadoVacio({ titulo, texto }: { titulo: string; texto: 
 const styles = StyleSheet.create({
   centro: {
     alignItems: 'center',
-    gap: 6,
-    padding: 32
+    gap: espacio.md,
+    paddingVertical: 48,
+    paddingHorizontal: espacio.xl
+  },
+  marco: {
+    width: 52,
+    height: 52,
+    borderRadius: radios.pildora,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.terracotaSuave
   },
   titulo: {
-    fontWeight: '600',
-    fontSize: 16,
-    color: colors.tinta
+    textAlign: 'center'
   },
   texto: {
-    fontSize: 14,
     textAlign: 'center',
-    color: colors.tintaSuave
+    maxWidth: 280
   }
 })

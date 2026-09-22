@@ -1,3 +1,4 @@
+import Feather from '@expo/vector-icons/Feather'
 import { router, useFocusEffect } from 'expo-router'
 import { useSQLiteContext } from 'expo-sqlite'
 import { useCallback, useState } from 'react'
@@ -8,9 +9,9 @@ import Tarjeta from '../../components/Tarjeta'
 import { obtenerClientePorLogin } from '../../db/clientes'
 import { comprasDeCliente } from '../../db/compras'
 import type { Cliente, CompraResumen } from '../../db/tipos'
-import { pesos } from '../../lib/moneda'
+import { fechaLegible, pesos } from '../../lib/moneda'
 import { useSesion } from '../../lib/sesion'
-import { colors, radios } from '../../theme'
+import { colors, espacio, fuentes, radios, tipo } from '../../theme'
 
 export default function InicioCliente() {
   const db = useSQLiteContext()
@@ -31,39 +32,58 @@ export default function InicioCliente() {
   if (!cliente) return <Cargando />
 
   const gastado = compras.reduce((suma, compra) => suma + compra.total, 0)
+  const nombre = cliente.nombreCompleto.split(' ')[0]
 
   return (
     <View style={styles.raiz}>
-      <Encabezado titulo={`Hola ${cliente.nombreCompleto.split(' ')[0]}`} bajada="Bienvenido al sistema" />
+      <Encabezado titulo={`Hola, ${nombre}`} bajada="Bienvenido al sistema" />
 
       <ScrollView contentContainerStyle={styles.contenido}>
-        <View style={styles.tarjetas}>
-          <View style={styles.tarjeta}>
-            <Text style={styles.etiqueta}>Compras</Text>
-            <Text style={styles.valor}>{compras.length}</Text>
-          </View>
-          <View style={[styles.tarjeta, styles.tarjetaDestacada]}>
-            <Text style={styles.etiqueta}>Total gastado</Text>
-            <Text style={[styles.valor, styles.valorDestacado]}>{pesos(gastado)}</Text>
-          </View>
-        </View>
-
         <Pressable
           accessibilityRole="button"
-          style={styles.accion}
           onPress={() => router.push('/(cliente)/comprar')}
+          style={({ pressed }) => [styles.accion, pressed && styles.presionado]}
         >
-          <Text style={styles.accionTitulo}>Hacer una compra</Text>
-          <Text style={styles.accionTexto}>Revisa el catálogo y elige tus productos.</Text>
+          <View style={styles.accionTextos}>
+            <Text style={styles.accionSobre}>Empezar</Text>
+            <Text style={styles.accionTitulo}>Hacer una compra</Text>
+            <Text style={styles.accionTexto}>Revisa el catálogo y elige tus productos.</Text>
+          </View>
+          <View style={styles.accionIcono}>
+            <Feather name="arrow-up-right" size={20} color={colors.terracota} />
+          </View>
         </Pressable>
+
+        <View style={styles.cifras}>
+          <Tarjeta style={styles.cifra}>
+            <Text style={tipo.menudo}>Compras</Text>
+            <Text style={styles.cifraValor}>{compras.length}</Text>
+          </Tarjeta>
+          <Tarjeta destacada style={styles.cifra}>
+            <Text style={tipo.menudo}>Total gastado</Text>
+            <Text style={styles.cifraValor}>{pesos(gastado)}</Text>
+          </Tarjeta>
+        </View>
 
         {compras.length > 0 && (
           <Tarjeta style={styles.seccion}>
-            <Text style={styles.seccionTitulo}>Última compra</Text>
-            <View style={styles.fila}>
-              <Text style={styles.filaNombre}>Compra #{compras[0].id}</Text>
-              <Text style={styles.filaValor}>{pesos(compras[0].total)}</Text>
+            <Text style={tipo.sobretitulo}>Última compra</Text>
+            <View style={styles.ultima}>
+              <View style={styles.ultimaTextos}>
+                <Text style={tipo.cuerpoFuerte}>Compra #{compras[0].id}</Text>
+                <Text style={tipo.menudo}>{fechaLegible(compras[0].fechaVenta)}</Text>
+              </View>
+              <Text style={styles.ultimaValor}>{pesos(compras[0].total)}</Text>
             </View>
+
+            <Pressable
+              accessibilityRole="link"
+              onPress={() => router.push('/(cliente)/mis-compras')}
+              style={({ pressed }) => [styles.verTodas, pressed && styles.presionado]}
+            >
+              <Text style={styles.verTodasTexto}>Ver todas mis compras</Text>
+              <Feather name="arrow-right" size={14} color={colors.terracota} />
+            </Pressable>
           </Tarjeta>
         )}
       </ScrollView>
@@ -77,77 +97,97 @@ const styles = StyleSheet.create({
     backgroundColor: colors.fondo
   },
   contenido: {
-    padding: 16,
-    gap: 16
-  },
-  tarjetas: {
-    flexDirection: 'row',
-    gap: 12
-  },
-  tarjeta: {
-    flex: 1,
-    gap: 6,
-    backgroundColor: colors.superficie,
-    borderWidth: 1,
-    borderColor: colors.borde,
-    borderRadius: radios.lg,
-    padding: 16
-  },
-  tarjetaDestacada: {
-    backgroundColor: colors.acentoSuave,
-    borderColor: colors.acentoSuave
-  },
-  etiqueta: {
-    fontWeight: '500',
-    fontSize: 12,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    color: colors.tintaSuave
-  },
-  valor: {
-    fontWeight: '700',
-    fontSize: 22,
-    letterSpacing: -0.6,
-    color: colors.tinta
-  },
-  valorDestacado: {
-    color: colors.acento
+    padding: espacio.xl,
+    paddingTop: espacio.lg,
+    gap: espacio.md
   },
   accion: {
-    gap: 4,
-    backgroundColor: colors.tinta,
-    borderRadius: radios.lg,
-    padding: 20
-  },
-  accionTitulo: {
-    fontWeight: '600',
-    fontSize: 17,
-    color: '#ffffff'
-  },
-  accionTexto: {
-    fontSize: 14,
-    color: '#cbd5e1'
-  },
-  seccion: {
-    gap: 10
-  },
-  seccionTitulo: {
-    fontWeight: '600',
-    fontSize: 16,
-    color: colors.tinta
-  },
-  fila: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between'
+    gap: espacio.lg,
+    backgroundColor: colors.tinta,
+    borderRadius: radios.lg,
+    padding: espacio.xl
   },
-  filaNombre: {
-    fontSize: 14,
-    color: colors.tintaSuave
+  presionado: {
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }]
   },
-  filaValor: {
-    fontWeight: '600',
-    fontSize: 15,
-    color: colors.tinta
+  accionTextos: {
+    flex: 1,
+    gap: 3
+  },
+  accionSobre: {
+    fontFamily: fuentes.textoFuerte,
+    fontSize: 11,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    color: '#e7a07a'
+  },
+  accionTitulo: {
+    fontFamily: fuentes.displayFuerte,
+    fontSize: 22,
+    letterSpacing: -0.4,
+    color: '#fff7ed'
+  },
+  accionTexto: {
+    fontFamily: fuentes.texto,
+    fontSize: 13.5,
+    color: '#c7c0b8'
+  },
+  accionIcono: {
+    width: 42,
+    height: 42,
+    borderRadius: radios.pildora,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff7ed'
+  },
+  cifras: {
+    flexDirection: 'row',
+    gap: espacio.md
+  },
+  cifra: {
+    flex: 1,
+    gap: 4
+  },
+  cifraValor: {
+    fontFamily: fuentes.displayFuerte,
+    fontSize: 21,
+    letterSpacing: -0.5,
+    color: colors.tinta,
+    fontVariant: ['tabular-nums']
+  },
+  seccion: {
+    gap: espacio.md
+  },
+  ultima: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: espacio.md
+  },
+  ultimaTextos: {
+    flex: 1,
+    gap: 2
+  },
+  ultimaValor: {
+    fontFamily: fuentes.displayFuerte,
+    fontSize: 17,
+    color: colors.tinta,
+    fontVariant: ['tabular-nums']
+  },
+  verTodas: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingTop: espacio.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.borde
+  },
+  verTodasTexto: {
+    fontFamily: fuentes.textoFuerte,
+    fontSize: 13,
+    color: colors.terracota
   }
 })

@@ -1,12 +1,13 @@
+import Feather from '@expo/vector-icons/Feather'
 import { useSQLiteContext } from 'expo-sqlite'
 import { useState } from 'react'
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
 import EstadoVacio from './EstadoVacio'
 import { compraCompleta } from '../db/compras'
-import { compartirFactura } from '../lib/factura'
 import type { CompraCompleta, CompraResumen } from '../db/tipos'
+import { compartirFactura } from '../lib/factura'
 import { fechaLegible, pesos } from '../lib/moneda'
-import { colors, radios } from '../theme'
+import { colors, espacio, fuentes, radios, tipo } from '../theme'
 
 type Props = {
   compras: CompraResumen[]
@@ -15,8 +16,6 @@ type Props = {
   vacioTexto: string
 }
 
-/** Listado de encabezados; al tocar uno se cargan sus detalles. Se comparte
- *  entre la vista del administrador y el historial del cliente. */
 export default function ListaCompras({
   compras,
   mostrarCliente = false,
@@ -26,6 +25,8 @@ export default function ListaCompras({
   const db = useSQLiteContext()
   const [abierta, setAbierta] = useState<number | null>(null)
   const [detalle, setDetalle] = useState<CompraCompleta | null>(null)
+  const [generando, setGenerando] = useState(false)
+  const [fallo, setFallo] = useState('')
 
   const alternar = async (id: number) => {
     if (abierta === id) {
@@ -38,58 +39,86 @@ export default function ListaCompras({
     setDetalle(await compraCompleta(db, id))
   }
 
+  const descargar = async (compra: CompraCompleta) => {
+    setGenerando(true)
+    setFallo('')
+    try {
+      await compartirFactura(compra)
+    } catch (e) {
+      setFallo(e instanceof Error ? e.message : 'No se pudo generar el PDF.')
+    } finally {
+      setGenerando(false)
+    }
+  }
+
   return (
     <FlatList
       data={compras}
       keyExtractor={item => String(item.id)}
       contentContainerStyle={styles.lista}
       ListEmptyComponent={
-        <EstadoVacio titulo={vacioTitulo} texto={vacioTexto} />
+        <EstadoVacio titulo={vacioTitulo} texto={vacioTexto} icono="shopping-bag" />
       }
       renderItem={({ item }) => {
         const expandida = abierta === item.id
         return (
-          <View style={styles.tarjeta}>
+          <View style={[styles.tarjeta, expandida && styles.tarjetaAbierta]}>
             <Pressable
               accessibilityRole="button"
-              style={styles.cabecera}
+              style={({ pressed }) => [styles.cabecera, pressed && styles.presionada]}
               onPress={() => alternar(item.id)}
             >
+              <View style={styles.folio}>
+                <Text style={styles.folioNumero}>{String(item.id).padStart(2, '0')}</Text>
+              </View>
+
               <View style={styles.datos}>
-                <Text style={styles.numero}>Compra #{item.id}</Text>
-                {mostrarCliente ? <Text style={styles.cliente}>{item.nombreCliente}</Text> : null}
-                <Text style={styles.fecha}>
+                <Text style={tipo.cuerpoFuerte} numberOfLines={1}>
+                  {mostrarCliente ? item.nombreCliente : `Compra #${item.id}`}
+                </Text>
+                <Text style={tipo.menudo}>
                   {fechaLegible(item.fechaVenta)} · {item.items} producto(s)
                 </Text>
               </View>
 
               <View style={styles.derecha}>
                 <Text style={styles.total}>{pesos(item.total)}</Text>
-                <Text style={styles.ver}>{expandida ? 'Ocultar' : 'Ver detalle'}</Text>
+                <Feather
+                  name={expandida ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color={colors.piedraTenue}
+                />
               </View>
             </Pressable>
 
             {expandida && (
               <View style={styles.detalles}>
                 {detalle === null ? (
-                  <Text style={styles.cargando}>Cargando detalle…</Text>
+                  <Text style={tipo.menudo}>Cargando detalle…</Text>
                 ) : (
                   <>
                     {detalle.detalles.map(linea => (
                       <View key={linea.id} style={styles.linea}>
+                        <Text style={styles.cantidad}>{linea.cantidad}×</Text>
                         <Text style={styles.lineaNombre} numberOfLines={1}>
-                          {linea.cantidad} × {linea.nombreProducto}
+                          {linea.nombreProducto}
                         </Text>
                         <Text style={styles.lineaValor}>{pesos(linea.subtotal)}</Text>
                       </View>
                     ))}
 
+                    {fallo !== '' ? <Text style={styles.fallo}>{fallo}</Text> : null}
+
                     <Pressable
                       accessibilityRole="button"
-                      style={styles.factura}
-                      onPress={() => compartirFactura(detalle).catch(() => undefined)}
+                      disabled={generando}
+                      style={({ pressed }) => [styles.factura, pressed && styles.presionada]}
+                      onPress={() => descargar(detalle)}
                     >
-                      <Text style={styles.facturaTexto}>Descargar factura en PDF</Text>
+                      <Feather name="download" size={15} color={colors.terracota} />
+                      <Text style={styles.facturaTexto}>
+                        {generando ? 'Generando PDF…' : 'Descargar factura'}
+                      </Text>
                     </Pressable>
                   </>
                 )}
@@ -104,8 +133,9 @@ export default function ListaCompras({
 
 const styles = StyleSheet.create({
   lista: {
-    padding: 16,
-    gap: 12
+    padding: espacio.xl,
+    paddingTop: espacio.lg,
+    gap: espacio.md
   },
   tarjeta: {
     backgroundColor: colors.superficie,
@@ -114,83 +144,95 @@ const styles = StyleSheet.create({
     borderRadius: radios.lg,
     overflow: 'hidden'
   },
+  tarjetaAbierta: {
+    borderColor: colors.bordeFuerte
+  },
   cabecera: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    padding: 16
+    gap: espacio.md,
+    padding: espacio.lg
+  },
+  presionada: {
+    opacity: 0.85
+  },
+  folio: {
+    width: 38,
+    height: 38,
+    borderRadius: radios.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.terracotaSuave
+  },
+  folioNumero: {
+    fontFamily: fuentes.displayFuerte,
+    fontSize: 15,
+    color: colors.terracota
   },
   datos: {
     flex: 1,
-    gap: 3
-  },
-  numero: {
-    fontWeight: '600',
-    fontSize: 16,
-    color: colors.tinta
-  },
-  cliente: {
-    fontSize: 14,
-    color: colors.tinta
-  },
-  fecha: {
-    fontSize: 13,
-    color: colors.tintaSuave
+    gap: 2
   },
   derecha: {
     alignItems: 'flex-end',
     gap: 3
   },
   total: {
-    fontWeight: '700',
-    fontSize: 17,
-    color: colors.tinta
-  },
-  ver: {
-    fontWeight: '600',
-    fontSize: 12,
-    color: colors.acento
+    fontFamily: fuentes.displayFuerte,
+    fontSize: 16,
+    letterSpacing: -0.3,
+    color: colors.tinta,
+    fontVariant: ['tabular-nums']
   },
   detalles: {
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    paddingTop: 4,
+    gap: espacio.sm,
+    paddingHorizontal: espacio.lg,
+    paddingBottom: espacio.lg,
     borderTopWidth: 1,
-    borderTopColor: colors.borde
+    borderTopColor: colors.borde,
+    paddingTop: espacio.md
   },
   linea: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingTop: 8
+    alignItems: 'center',
+    gap: espacio.md
+  },
+  cantidad: {
+    fontFamily: fuentes.textoFuerte,
+    fontSize: 13,
+    color: colors.terracota,
+    minWidth: 26
   },
   lineaNombre: {
     flex: 1,
+    fontFamily: fuentes.texto,
     fontSize: 14,
     color: colors.tintaSuave
   },
   lineaValor: {
-    fontWeight: '500',
+    fontFamily: fuentes.textoMedio,
     fontSize: 14,
-    color: colors.tinta
+    color: colors.tinta,
+    fontVariant: ['tabular-nums']
+  },
+  fallo: {
+    fontFamily: fuentes.textoMedio,
+    fontSize: 13,
+    color: colors.ladrillo
   },
   factura: {
-    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: espacio.sm,
+    marginTop: espacio.sm,
     paddingVertical: 11,
     borderRadius: radios.md,
-    alignItems: 'center',
-    backgroundColor: colors.acentoSuave
+    backgroundColor: colors.terracotaSuave
   },
   facturaTexto: {
-    fontWeight: '600',
-    fontSize: 13,
-    color: colors.acento
-  },
-  cargando: {
-    paddingTop: 10,
-    fontSize: 13,
-    color: colors.tintaTenue
+    fontFamily: fuentes.textoFuerte,
+    fontSize: 13.5,
+    color: colors.terracota
   }
 })

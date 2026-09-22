@@ -3,16 +3,16 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   View
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useSQLiteContext } from 'expo-sqlite'
 import { buscarClientes, listarClientes } from '../../db/clientes'
 import type { ClienteResumen } from '../../db/tipos'
-import { colors, radios } from '../../theme'
+import { colors, fuentes, radios } from '../../theme'
 
 const monedaCOP = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -100,7 +100,7 @@ export default function ClientesAdminScreen() {
           value={busqueda}
           onChangeText={setBusqueda}
           placeholder="Buscar por nombre o correo"
-          placeholderTextColor={colors.tintaTenue}
+          placeholderTextColor={colors.piedraTenue}
           autoCapitalize="none"
           keyboardType="email-address"
           style={styles.buscador}
@@ -125,7 +125,7 @@ export default function ClientesAdminScreen() {
 
         {cargando ? (
           <View style={styles.estado}>
-            <ActivityIndicator color={colors.acento} />
+            <ActivityIndicator color={colors.terracota} />
             <Text style={styles.estadoTexto}>Cargando clientes...</Text>
           </View>
         ) : (
@@ -206,13 +206,13 @@ const styles = StyleSheet.create({
   },
   sobretitulo: {
     fontSize: 13,
-    fontWeight: '600',
-    color: colors.acento,
+    fontFamily: fuentes.textoFuerte,
+    color: colors.terracota,
     textTransform: 'uppercase'
   },
   titulo: {
     fontSize: 30,
-    fontWeight: '700',
+    fontFamily: fuentes.textoFuerte,
     color: colors.tinta
   },
   resumen: {
@@ -220,12 +220,12 @@ const styles = StyleSheet.create({
   },
   resumenValor: {
     fontSize: 24,
-    fontWeight: '700',
+    fontFamily: fuentes.textoFuerte,
     color: colors.tinta
   },
   resumenEtiqueta: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: fuentes.textoMedio,
     color: colors.tintaSuave
   },
   buscador: {
@@ -237,6 +237,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     backgroundColor: colors.superficie,
     color: colors.tinta,
+    fontFamily: fuentes.texto,
     fontSize: 15
   },
   indicadores: {
@@ -254,24 +255,24 @@ const styles = StyleSheet.create({
   },
   indicadorValor: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: fuentes.textoFuerte,
     color: colors.tinta
   },
   indicadorTexto: {
     marginTop: 4,
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: fuentes.textoMedio,
     color: colors.tintaSuave
   },
   alerta: {
     borderRadius: radios.md,
     padding: 12,
     marginBottom: 12,
-    backgroundColor: colors.errorFondo
+    backgroundColor: colors.ladrilloSuave
   },
   alertaTexto: {
-    color: colors.error,
-    fontWeight: '600'
+    color: colors.ladrillo,
+    fontFamily: fuentes.textoFuerte
   },
   lista: {
     paddingBottom: 24,
@@ -300,24 +301,24 @@ const styles = StyleSheet.create({
   },
   nombre: {
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: fuentes.textoFuerte,
     color: colors.tinta
   },
   correo: {
     fontSize: 14,
-    fontWeight: '400',
+    fontFamily: fuentes.texto,
     color: colors.tintaSuave
   },
   codigo: {
     borderRadius: radios.sm,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: colors.acentoSuave,
+    backgroundColor: colors.terracotaSuave,
     alignSelf: 'flex-start'
   },
   codigoTexto: {
-    color: colors.acento,
-    fontWeight: '700'
+    color: colors.terracota,
+    fontFamily: fuentes.textoFuerte
   },
   detalles: {
     flexDirection: 'row',
@@ -332,12 +333,12 @@ const styles = StyleSheet.create({
   },
   datoEtiqueta: {
     fontSize: 12,
-    fontWeight: '600',
-    color: colors.tintaTenue
+    fontFamily: fuentes.textoFuerte,
+    color: colors.piedraTenue
   },
   datoValor: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: fuentes.textoFuerte,
     color: colors.tinta
   },
   estado: {
@@ -349,11 +350,12 @@ const styles = StyleSheet.create({
   },
   estadoTitulo: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: fuentes.textoFuerte,
     color: colors.tinta,
     textAlign: 'center'
   },
   estadoTexto: {
+    fontFamily: fuentes.texto,
     fontSize: 14,
     lineHeight: 20,
     color: colors.tintaSuave,

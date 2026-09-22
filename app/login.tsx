@@ -8,7 +8,7 @@ import Campo from '../components/Campo'
 import LayoutAuth from '../components/LayoutAuth'
 import { autenticar } from '../db/login'
 import { useSesion } from '../lib/sesion'
-import { shared } from '../theme'
+import { shared, tipo } from '../theme'
 
 const MENSAJES = {
   credenciales: 'Correo o contraseña incorrectos.',
@@ -59,8 +59,8 @@ export default function Login() {
     <LayoutAuth>
       <View style={shared.formulario}>
         <View style={shared.encabezado}>
-          <Text style={shared.titulo}>Iniciar sesión</Text>
-          <Text style={shared.subtitulo}>Entra con la cuenta que registraste.</Text>
+          <Text style={tipo.titular}>Iniciar sesión</Text>
+          <Text style={tipo.cuerpo}>Entra con la cuenta que registraste.</Text>
         </View>
 
         <Campo
